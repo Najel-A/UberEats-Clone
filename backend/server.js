@@ -3,18 +3,18 @@ const mongoose = require('mongoose')
 // const db = require('./config/connectDB'); Fix auto DB part later
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const cors = require('cors');
 
 
 
 // Import routes
-const authCustomerRoutes = require('./routes/authCustomerRoutes');
-const authRestaurantRoutes = require('./routes/authRestaurantRoutes');
+const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes');
-const dishRoutes = require('./routes/dishRoutes');
-const restaurantRoutes = require('./routes/restaurantRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const connectDB = require('./config/db');
+// const dishRoutes = require('./routes/dishRoutes');
+// const restaurantRoutes = require('./routes/restaurantRoutes');
+// const orderRoutes = require('./routes/orderRoutes');
+// const connectDB = require('./config/db');
 
 // Express app
 const app = express();
@@ -42,16 +42,20 @@ app.use(session({
         secure: false, // set to true in production with HTTPS
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax'
+        sameSite: 'lax',
+        store: MongoStore.create({
+          mongoUrl: process.env.MONGODB_URI,
+          collectionName: 'sessions', // stores sessions
+        })
     },
+    polling: true, // refreshes session on every request
 }));
 
 
 
 // Mount routes
-// app.use('/api/auth/customer', authCustomerRoutes);
-// app.use('/api/auth/restaurant', authRestaurantRoutes);
-// app.use('/api/customers', customerRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
 // app.use('/api/dishes', dishRoutes);
 // app.use('/api/restaurants', restaurantRoutes);
 // app.use('/api/orders', orderRoutes);
