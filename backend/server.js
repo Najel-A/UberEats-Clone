@@ -11,8 +11,8 @@ const cors = require('cors');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes');
-// const dishRoutes = require('./routes/dishRoutes');
-// const restaurantRoutes = require('./routes/restaurantRoutes');
+const dishRoutes = require('./routes/dishRoutes');
+const restaurantRoutes = require('./routes/restaurantRoutes');
 // const orderRoutes = require('./routes/orderRoutes');
 // const connectDB = require('./config/db');
 
@@ -56,8 +56,8 @@ app.use(session({
 // Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
-// app.use('/api/dishes', dishRoutes);
-// app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/', dishRoutes); // Follows the restaurant route structure
 // app.use('/api/orders', orderRoutes);
 
 // Error handling middleware
