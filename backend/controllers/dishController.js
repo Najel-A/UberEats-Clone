@@ -43,7 +43,6 @@ exports.getDishDetails = async (req, res) => {
 exports.addDish = async (req, res) => {
   try {
     const restaurantId = req.params.restaurantId;
-    console.log('Here:', restaurantId);
     const { name, ingredients, price, description, image, category } = req.body;
 
     const newDish = await Dish.create({

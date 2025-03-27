@@ -13,7 +13,7 @@ const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const dishRoutes = require('./routes/dishRoutes');
 const restaurantRoutes = require('./routes/restaurantRoutes');
-// const orderRoutes = require('./routes/orderRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 // const connectDB = require('./config/db');
 
 // Express app
@@ -58,7 +58,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/', dishRoutes); // Follows the restaurant route structure
-// app.use('/api/orders', orderRoutes);
+app.use('/api/', orderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
