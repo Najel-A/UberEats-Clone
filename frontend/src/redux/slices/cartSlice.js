@@ -16,6 +16,21 @@ const saveCartToStorage = (cart) => {
 
 const initialState = loadCartFromStorage();
 
+// Move this before createSlice since it's used in extraReducers
+export const submitOrder = createAsyncThunk(
+  'cart/submitOrder',
+  async (orderData, { getState, dispatch }) => {
+    const { token } = getState().auth;
+    const response = await axios.post('/api/orders', orderData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    dispatch(clearCart());
+    return response.data;
+  }
+);
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -49,16 +64,18 @@ const cartSlice = createSlice({
     clearCart: () => loadCartFromStorage(),
   },
   extraReducers: (builder) => {
-    builder
-      .addMatcher(
-        (action) => action.type.startsWith('cart/'),
-        (state) => {
-          saveCartToStorage(state);
-        }
-      )
-      .addCase(submitOrder.fulfilled, (state, action) => {
-        // Handle successful order submission
-      });
+    // Add all .addCase() calls FIRST
+    builder.addCase(submitOrder.fulfilled, (state, action) => {
+      // Handle successful order submission
+    });
+    
+    // THEN add .addMatcher() calls
+    builder.addMatcher(
+      (action) => action.type.startsWith('cart/'),
+      (state) => {
+        saveCartToStorage(state);
+      }
+    );
   }
 });
 
@@ -66,20 +83,6 @@ const cartSlice = createSlice({
 const calculateTotal = (items) => {
   return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 };
-
-export const submitOrder = createAsyncThunk(
-  'cart/submitOrder',
-  async (orderData, { getState, dispatch }) => {
-    const { token } = getState().auth;
-    const response = await axios.post('/api/orders', orderData, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    dispatch(clearCart());
-    return response.data;
-  }
-);
 
 export const { addItem, removeItem, updateQuantity, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;
