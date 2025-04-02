@@ -1,23 +1,21 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../../../redux/slices/authSlice";
+import { loginUser, signupUser } from "../../../../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+const CustomerSignup = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, user } = useSelector((state) => state.auth);
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    const result = await dispatch(loginUser(email, password));
-    console.log(result);
-    navigate("/customer/home");
-    // if (result.payload && !result.error) {
-    //   navigate("/customer/home");
-    // }
+    dispatch(signupUser({ name, email, password, role: "customer" })); // default role is customer
+    dispatch(loginUser(email, password)); // login after signup
+    navigate("/customer/home"); // go to customer home page
   };
 
   return (
@@ -26,9 +24,19 @@ const Login = () => {
         <div className="col-md-6">
           <div className="card">
             <div className="card-body">
-              <h2 className="card-title text-center mb-4">Login</h2>
+              <h2 className="card-title text-center mb-4">Sign Up</h2>
               {user ? <p className="alert alert-success">Welcome, {user.name}!</p> : null}
-              <form onSubmit={handleLogin}>
+              <form onSubmit={handleSignup}>
+                <div className="mb-3">
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="Name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    required 
+                  />
+                </div>
                 <div className="mb-3">
                   <input 
                     type="email" 
@@ -55,11 +63,11 @@ const Login = () => {
                     className="btn btn-primary" 
                     disabled={loading}
                   >
-                    {loading ? 'Logging in...' : 'Login'}
+                    {loading ? 'Signing up...' : 'Sign Up'}
                   </button>
                 </div>
               </form>
-              {loading && <p className="text-center mt-3">Logging in...</p>}
+              {loading && <p className="text-center mt-3">Signing up...</p>}
               {error && <p className="alert alert-danger mt-3">{error}</p>}
             </div>
           </div>
@@ -69,4 +77,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default CustomerSignup;

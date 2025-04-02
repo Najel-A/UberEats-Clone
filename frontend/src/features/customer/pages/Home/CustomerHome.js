@@ -1,11 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Container, Typography, Box } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../../../redux/slices/authSlice';
 
 const CustomerHome = () => {
   const navigate = useNavigate();
+  const authState = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+  const { user, token } = authState;
 
-  const handleLogout = async () => {
+
+  const handleLogout = () => {
+    dispatch(logout());
     navigate('/');
   };
 
@@ -20,12 +27,13 @@ const CustomerHome = () => {
           gap: 3
         }}
       >
+        {/* Safe rendering with fallback */}
         <Typography variant="h4" component="h1">
-          Welcome, Guest!
+          Welcome, {user || 'Valued Customer'}!
         </Typography>
         
         <Typography variant="body1">
-          What would you like to eat today?
+          {token ? "Browse our menu" : "Please login to continue"}
         </Typography>
 
         <Button
