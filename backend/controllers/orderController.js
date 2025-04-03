@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Dish = require('../models/Dish');
 const Customer = require('../models/Customer');
@@ -6,38 +7,30 @@ const Restaurant = require('../models/Restaurant');
 // Create order directly from items
 exports.createOrder = async (req, res) => {
     try {
-        console.log('Creating order with body:', req.body);
-        console.log('User session:', req.session);
+        const { items, customer_id, restaurant_id, total_price } = req.body;
         
-        const customerId = req.user.id;
-        const { items, restaurantId, totalAmount } = req.body;
+        const isObjectId = (id) => id instanceof mongoose.Types.ObjectId;
 
-        if (!items || !items.length) {
-            return res.status(400).json({ message: 'No items provided' });
-        }
-
-        // Create order
-        const order = await Order.create({
-            customer: customerId,
-            restaurant: restaurantId,
-            totalAmount: totalAmount,
-            status: 'New',
-            orderItems: items.map(item => ({
-                dish: item.dishId,
+        const order = new Order({
+            customer_id: isObjectId(customer_id) ? customer_id : new mongoose.Types.ObjectId(customer_id),
+            restaurant_id: isObjectId(restaurant_id) ? restaurant_id : new mongoose.Types.ObjectId(restaurant_id),
+            items: items.map(item => ({
+                dish: isObjectId(item.dish) ? item.dish : new mongoose.Types.ObjectId(item.dish),
                 quantity: item.quantity,
-                priceAtTime: item.price
-            }))
+                priceAtTime: item.priceAtTime
+            })),
+            total_price,
+            status: 'New'
         });
 
-        res.status(201).json({
-            message: 'Order created successfully',
-            order_id: order._id
-        });
+        console.log('Order instance before save:', order);
+        await order.save();
+        res.status(201).json(order);
     } catch (error) {
-        console.error('Error creating order:', error);
-        res.status(500).json({ 
-            message: 'Error creating order', 
-            error: error.message 
+        console.error('Full validation error:', error);
+        res.status(400).json({ 
+            message: error.message,
+            details: error.errors 
         });
     }
 };

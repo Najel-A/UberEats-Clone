@@ -12,16 +12,11 @@ const orderSchema = new mongoose.Schema(
       ref: 'Restaurant',
       required: true,
     },
-    // Covers the Dish items
     items: [
       {
-        dish_id: {
+        dish: {  // Changed from dish_id to match your request
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Dish',
-          required: true,
-        },
-        name: {
-          type: String,
           required: true,
         },
         quantity: {
@@ -29,10 +24,12 @@ const orderSchema = new mongoose.Schema(
           required: true,
           min: 1,
         },
-        price: {
+        priceAtTime: {  // Changed from price to match your request
           type: Number,
           required: true,
         },
+        // Removed 'name' requirement since it's not in your request
+        // Kept special_instructions as optional
         special_instructions: {
           type: String,
           default: '',

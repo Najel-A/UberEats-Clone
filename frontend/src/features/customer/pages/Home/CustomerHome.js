@@ -35,7 +35,6 @@ const CustomerHome = () => {
   const { profile, loading: profileLoading } = useSelector(state => state.customer);
   const { restaurants, loading: restaurantsLoading, error } = useSelector(state => state.restaurants);
   const { items } = useSelector(state => state.cart);
-  
   const [cartOpen, setCartOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const profileMenuOpen = Boolean(anchorEl);

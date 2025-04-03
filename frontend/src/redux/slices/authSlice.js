@@ -1,4 +1,5 @@
 const initialState = {
+  id: null,       // User ID
   user: null,       // Will store { name, role }
   token: null,      // JWT token
   role: null,       // User role (also stored in user object)
@@ -18,6 +19,7 @@ const authReducer = (state = initialState, action) => {
       console.log("Reducer processing auth success:", action.payload);
       return {
         ...state,
+        id: action.payload.id,
         user: action.payload.name,
         token: action.payload.token,
         role: action.payload.role,
@@ -42,6 +44,7 @@ const loginRequest = () => ({ type: "LOGIN_REQUEST" });
 const loginSuccess = (responseData) => ({ 
   type: "LOGIN_SUCCESS", 
   payload: {
+    id: responseData.id,
     token: responseData.token,
     name: responseData.name,
     role: responseData.role
@@ -53,6 +56,7 @@ const signupRequest = () => ({ type: "SIGNUP_REQUEST" });
 const signupSuccess = (responseData) => ({ 
   type: "SIGNUP_SUCCESS", 
   payload: {
+    id: responseData.id,
     token: responseData.token,
     name: responseData.name,
     role: responseData.role
