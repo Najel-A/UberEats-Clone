@@ -12,6 +12,8 @@ import CustomerMenuPage from "./features/customer/pages/Menu/CustomerMenu";
 import CustomerProfilePage from "./features/customer/pages/Profile/CustomerProfile";
 import CustomerFavoritesPage from "./features/customer/pages/Favorite/CustomerFavorite";
 import CheckoutPage from "./features/customer/pages/Checkout/Checkout";
+import OrderHistoryPage from "./features/customer/pages/Orders/OrderPage";
+import OrderDetailsPage from "./features/customer/pages/OrderDetails/OrderDetailsPage";
 import OrderConfirmation from "./features/customer/pages/OrderConfirmation/OrderConfirmation";
 
 // Import Protected Routes
@@ -49,6 +51,18 @@ function AppRoutes() {
       <Route path="/customer/favorites" element={
         <ProtectedRoute>
           <CustomerFavoritesPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/customer/orders" element={
+        <ProtectedRoute>
+          <OrderHistoryPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/customer/orders/:orderId" element={
+        <ProtectedRoute>
+          <OrderDetailsPage />
         </ProtectedRoute>
       } />
 

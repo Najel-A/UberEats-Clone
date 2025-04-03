@@ -39,15 +39,15 @@ exports.createOrder = async (req, res) => {
 exports.getCustomerOrders = async (req, res) => {
     try {
         const customerId = req.user.id;
-        console.log('Cusomter ID:',customerId);
-        const orders = await Order.find({ customer: customerId })
-            .populate('restaurant', 'name profilePicture')
+        
+        const orders = await Order.find({ customer_id: customerId })
+            .populate('restaurant_id', 'name profilePicture')
             .populate({
-                path: 'orderItems.dish',
+                path: 'items.dish',
                 select: 'name image'
             })
             .sort({ createdAt: -1 });
-
+        
         res.status(200).json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);
@@ -76,6 +76,7 @@ exports.getRestaurantOrders = async (req, res) => {
                 select: 'name image'
             })
             .sort({ createdAt: -1 });
+        
 
         res.status(200).json(orders);
     } catch (error) {

@@ -126,7 +126,7 @@ const CustomerHome = () => {
           <Favorite sx={{ mr: 1 }} /> Favorites
         </MenuItem>
         
-        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/orders'); }}>
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/orders'); }}>
           <History sx={{ mr: 1 }} /> Orders
         </MenuItem>
         
