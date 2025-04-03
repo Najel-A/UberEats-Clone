@@ -10,6 +10,7 @@ import CustomerSignup from "./features/customer/pages/Signup/CustomerSignup";
 import CustomerHome from "./features/customer/pages/Home/CustomerHome";
 import CustomerMenuPage from "./features/customer/pages/Menu/CustomerMenu";
 import CustomerProfilePage from "./features/customer/pages/Profile/CustomerProfile";
+import CustomerFavoritesPage from "./features/customer/pages/Favorite/CustomerFavorite";
 import CheckoutPage from "./features/customer/pages/Checkout/Checkout";
 import OrderConfirmation from "./features/customer/pages/OrderConfirmation/OrderConfirmation";
 
@@ -42,6 +43,12 @@ function AppRoutes() {
       <Route path="/customer/profile" element={
         <ProtectedRoute>
           <CustomerProfilePage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/customer/favorites" element={
+        <ProtectedRoute>
+          <CustomerFavoritesPage />
         </ProtectedRoute>
       } />
 

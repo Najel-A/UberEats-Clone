@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Typography, 
   Box, 
   CircularProgress, 
-  List, 
-  ListItem, 
-  ListItemText, 
+  Grid,
   Paper,
   IconButton,
   Badge,
@@ -26,32 +24,33 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../../redux/slices/authSlice';
 import { fetchRestaurants } from '../../../../redux/slices/restaurantSlice';
-import { fetchCustomerProfile } from '../../../../redux/slices/customerSlice'; // Add this import
+import { fetchCustomerProfile, fetchFavorites } from '../../../../redux/slices/customerSlice';
 import Cart from '../../components/Cart/Cart';
+import RestaurantCard from '../../components/Restaurant/RestaurantCard';
 
 const CustomerHome = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, token } = useSelector(state => state.auth);
-  const { profile, loading: profileLoading } = useSelector(state => state.customer || {}); // Add safe access
+  const { profile, loading: profileLoading } = useSelector(state => state.customer);
   const { restaurants, loading: restaurantsLoading, error } = useSelector(state => state.restaurants);
   const { items } = useSelector(state => state.cart);
   
-  // State for cart drawer
   const [cartOpen, setCartOpen] = useState(false);
-  // State for profile menu
   const [anchorEl, setAnchorEl] = useState(null);
   const profileMenuOpen = Boolean(anchorEl);
 
   useEffect(() => {
     if (token) {
       dispatch(fetchRestaurants());
-      dispatch(fetchCustomerProfile()); // Fetch profile data on load
+      dispatch(fetchCustomerProfile());
+      dispatch(fetchFavorites());
     }
   }, [token, dispatch]);
 
   const handleLogout = () => {
     dispatch(logout());
+    navigate('/');
   };
 
   const toggleCart = () => {
@@ -67,7 +66,7 @@ const CustomerHome = () => {
   };
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="lg">
       {/* Header with Cart and Profile buttons */}
       <Box sx={{ 
         position: 'fixed', 
@@ -77,7 +76,6 @@ const CustomerHome = () => {
         display: 'flex',
         gap: 1
       }}>
-        {/* Profile Button */}
         <IconButton
           onClick={handleProfileMenuOpen}
           color="primary"
@@ -89,7 +87,6 @@ const CustomerHome = () => {
           <AccountCircle fontSize="large" />
         </IconButton>
         
-        {/* Cart Button */}
         <IconButton onClick={toggleCart} color="primary" aria-label="cart">
           <Badge badgeContent={items.length} color="error">
             <ShoppingCart fontSize="large" />
@@ -117,63 +114,34 @@ const CustomerHome = () => {
             {user ? user.charAt(0).toUpperCase() : 'U'}
           </Avatar>
           <Typography variant="subtitle1" sx={{ mt: 1 }}>
-            {profile?.name || user || 'User'} {/* Safe access to profile name */}
+            {profile?.name || user || 'User'}
           </Typography>
         </Box>
         <Divider />
         
-        <MenuItem 
-          onClick={() => {
-            handleProfileMenuClose();
-            navigate('/customer/profile');
-          }}
-        >
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/profile'); }}>
           <AccountCircle sx={{ mr: 1 }} /> Profile
         </MenuItem>
         
-        <MenuItem 
-          onClick={() => {
-            handleProfileMenuClose();
-            navigate('/favorites');
-          }}
-        >
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/favorites'); }}>
           <Favorite sx={{ mr: 1 }} /> Favorites
         </MenuItem>
         
-        <MenuItem 
-          onClick={() => {
-            handleProfileMenuClose();
-            navigate('/orders');
-          }}
-        >
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/orders'); }}>
           <History sx={{ mr: 1 }} /> Orders
         </MenuItem>
         
         <Divider />
         
-        <MenuItem 
-          onClick={() => {
-            handleProfileMenuClose();
-            handleLogout();
-          }}
-          sx={{ color: 'error.main' }}
-        >
+        <MenuItem onClick={() => { handleProfileMenuClose(); handleLogout(); }} sx={{ color: 'error.main' }}>
           <ExitToApp sx={{ mr: 1 }} /> Logout
         </MenuItem>
       </Menu>
       
       {/* Main Content */}
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 3
-        }}
-      >
+      <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
         <Typography variant="h4" component="h1">
-          Welcome, {profile?.name || user || 'Valued Customer'}! {/* Safe access */}
+          Welcome, {profile?.name || user || 'Valued Customer'}!
         </Typography>
         
         {(restaurantsLoading || profileLoading) && <CircularProgress />}
@@ -185,42 +153,17 @@ const CustomerHome = () => {
         )}
         
         {restaurants.length > 0 && (
-          <Paper elevation={3} sx={{ width: '100%', padding: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper elevation={3} sx={{ width: '100%', p: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
               Available Restaurants
             </Typography>
-            <List>
+            <Grid container spacing={3}>
               {restaurants.map((restaurant) => (
-                <ListItem 
-                  key={restaurant._id} 
-                  divider
-                  component={Link}
-                  to={`/restaurants/${restaurant._id}/menu`}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: (theme) => theme.palette.action.hover,
-                      cursor: 'pointer'
-                    },
-                    textDecoration: 'none',
-                    color: 'inherit'
-                  }}
-                >
-                  <ListItemText
-                    primary={restaurant.name}
-                    secondary={
-                      <>
-                        <Typography component="span" variant="body2" display="block">
-                          Cuisine: {restaurant.cuisine}
-                        </Typography>
-                        <Typography component="span" variant="body2" display="block">
-                          Location: {restaurant.address}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
+                <Grid item key={restaurant._id} xs={12} sm={6} md={4}>
+                  <RestaurantCard restaurant={restaurant} />
+                </Grid>
               ))}
-            </List>
+            </Grid>
           </Paper>
         )}
         
@@ -231,7 +174,6 @@ const CustomerHome = () => {
         )}
       </Box>
       
-      {/* Cart Component */}
       <Cart open={cartOpen} onClose={() => setCartOpen(false)} />
     </Container>
   );

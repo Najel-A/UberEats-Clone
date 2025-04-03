@@ -55,7 +55,7 @@ exports.getFavorites = async (req, res) => {
 
     const favorites = await Favorite.find({ customer_id: userId }).populate('restaurant_id');
     
-    res.status(200).json(favorites);
+    res.status(200).json(favorites || []);
   } catch (error) {
     console.error('Error retrieving favorites:', error);
     res.status(500).json({ message: 'Error retrieving favorites', error: error.message });
@@ -67,6 +67,18 @@ exports.addFavorite = async (req, res) => {
   try {
     const userId = req.user.id; // user is set by authenticateJWT middleware
     const restaurantId = req.params.restaurantId;
+
+    // Check if already favorited
+    const existingFavorite = await Favorite.findOne({ 
+      customer_id: userId, 
+      restaurant_id: restaurantId 
+    });
+
+    if (existingFavorite) {
+      return res.status(400).json({ 
+        message: 'Restaurant is already in favorites' 
+      });
+    }
 
     const newFavorite = new Favorite({ customer_id: userId, restaurant_id: restaurantId });
     await newFavorite.save();
