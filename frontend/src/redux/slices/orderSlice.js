@@ -61,12 +61,16 @@ export const cancelOrder = createAsyncThunk(
   async (orderId, { getState }) => {
     try {
       const { token } = getState().auth;
-      const response = await axios.put(`http://localhost:5000/api/orders/${orderId}/cancel`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        withCredentials: true
-      });
+      // console.log('Slice Order ID:', orderId); // Debug order ID
+      const response = await axios.put(
+        `http://localhost:5000/api/orders/${orderId}/cancel`, // orderId in URL
+        {}, // Empty body (or add data if needed)
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data?.message || error.message;

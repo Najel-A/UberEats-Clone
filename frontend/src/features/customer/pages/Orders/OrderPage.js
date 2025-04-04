@@ -20,7 +20,7 @@ const OrderHistoryPage = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Your Orders</h1>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/customer/home')}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors flex items-center"
         >
           <span>← Back</span>

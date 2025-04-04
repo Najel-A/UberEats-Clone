@@ -16,7 +16,8 @@ const OrderCard = ({ order }) => {
   const handleCancel = async () => {
     if (window.confirm('Are you sure you want to cancel this order?')) {
       try {
-        await dispatch(cancelOrder(order._id)).unwrap();
+        console.log('Attempting to cancel order:', order._id);
+        await dispatch(cancelOrder(order._id));
         alert('Order cancelled successfully');
       } catch (error) {
         alert(`Failed to cancel order: ${error}`);

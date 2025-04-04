@@ -121,23 +121,32 @@ exports.updateOrderStatus = async (req, res) => {
 };
 
 // Cancel order (for customer)
+// Updated cancelOrder controller
 exports.cancelOrder = async (req, res) => {
     try {
-        console.log('[DEBUG] Cancel Order:');
-        console.log('OrderId:', req.orderId);
-        console.log('Customer:', req.session?.user?._id);
+        const orderId  = req.params.order_id;
+        const customerId = req.user.id; // Using authenticated user ID
+
+        console.log('Raw req.params:', req.params.order_id);
+        console.log('Raw req.body:', req.body);
+        
+        console.log('[DEBUG] Cancel Order Request:', {
+            orderId,
+            customerId
+        });
 
         // Find the order
         const order = await Order.findOne({
-            _id: req.orderId,
-            customer: req.user.id
+            _id: orderId,
+            customer_id: customerId
         });
 
         // If order not found, return 404
         if (!order) {
             console.log('[DEBUG] Order not found or does not belong to customer');
             return res.status(404).json({ 
-                message: 'Order not found' 
+                success: false,
+                message: 'Order not found or unauthorized' 
             });
         }
 
@@ -145,24 +154,33 @@ exports.cancelOrder = async (req, res) => {
         if (order.status !== 'New') {
             console.log('[DEBUG] Order cannot be cancelled - status:', order.status);
             return res.status(400).json({ 
-                message: 'Order cannot be cancelled' 
+                success: false,
+                message: `Order cannot be cancelled (current status: ${order.status})` 
             });
         }
 
         // Cancel the order
         order.status = 'Cancelled';
+        order.cancelledAt = new Date();
         await order.save();
-        console.log('[DEBUG] Order cancelled successfully');
-
+        
+        console.log('[DEBUG] Order cancelled successfully:', order._id);
+        
         // Return success
         res.status(200).json({
+            success: true,
             message: 'Order cancelled successfully',
-            order
+            order: {
+                _id: order._id,
+                status: order.status,
+                cancelledAt: order.cancelledAt
+            }
         });
     } catch (error) {
-        console.error('[DEBUG] Error cancelling order:', error);
+        console.error('[ERROR] Cancelling order:', error);
         res.status(500).json({ 
-            message: 'Error cancelling order',
+            success: false,
+            message: 'Failed to cancel order',
             error: error.message 
         });
     }
@@ -173,10 +191,10 @@ exports.getOrderDetails = async (req, res) => {
     try {
         const { order_id } = req.params;
         const order = await Order.findById(order_id)
-            .populate('customer', 'name email')
-            .populate('restaurant', 'name profilePicture')
+            .populate('customer_id', 'name email')
+            .populate('restaurant_id', 'name profilePicture')
             .populate({
-                path: 'orderItems.dish',
+                path: 'items.dish',
                 select: 'name image description'
             });
 

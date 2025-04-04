@@ -3,10 +3,11 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderDetails, cancelOrder } from '../../../../redux/slices/orderSlice';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const OrderDetailsPage = () => {
   const { orderId } = useParams();
+  console.log('Order ID:', orderId);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { selectedOrder, detailsStatus, cancelStatus } = useSelector((state) => state.order);
@@ -18,11 +19,32 @@ const OrderDetailsPage = () => {
   const handleCancel = async () => {
     if (window.confirm('Are you sure you want to cancel this order?')) {
       try {
-        await dispatch(cancelOrder(orderId)).unwrap();
+        await dispatch(cancelOrder(orderId));
         alert('Order cancelled successfully');
       } catch (error) {
         alert(`Failed to cancel order: ${error}`);
       }
+    }
+  };
+
+  // Safe date formatting function
+  const formatOrderDate = (date) => {
+    try {
+      if (!date) return 'Date not available';
+      
+      // Handle both ISO strings and Date objects
+      const parsedDate = typeof date === 'string' ? parseISO(date) : new Date(date);
+      
+      // Check if date is valid
+      if (isNaN(parsedDate.getTime())) {
+        console.warn('Invalid date received:', date);
+        return 'Date not available';
+      }
+      
+      return format(parsedDate, 'MMMM dd, yyyy - h:mm a');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date not available';
     }
   };
 
@@ -57,7 +79,7 @@ const OrderDetailsPage = () => {
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold mb-2">Order not found</h2>
         <button
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate('/customer/orders')}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           Back to Orders
@@ -71,7 +93,7 @@ const OrderDetailsPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Order Details</h1>
         <button
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate('/customer/orders')}  // Fixed back button path
           className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
         >
           Back to Orders
@@ -85,7 +107,7 @@ const OrderDetailsPage = () => {
               Order #{selectedOrder.orderNumber || selectedOrder._id.slice(-6)}
             </h2>
             <p className="text-gray-600">
-              {format(new Date(selectedOrder.createdAt), 'MMMM dd, yyyy - h:mm a')}
+              {formatOrderDate(selectedOrder.createdAt)}  {/* Using safe date formatter */}
             </p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
@@ -95,33 +117,39 @@ const OrderDetailsPage = () => {
 
         <div className="flex items-center mb-6">
           <img
-            src={selectedOrder.restaurant.profilePicture || '/restaurant-placeholder.png'}
-            alt={selectedOrder.restaurant.name}
+            src={selectedOrder.restaurant?.profilePicture || '/restaurant-placeholder.png'}
+            alt={selectedOrder.restaurant?.name || 'Restaurant'}
             className="w-16 h-16 rounded-full object-cover mr-4"
+            onError={(e) => {
+              e.target.src = '/restaurant-placeholder.png';
+            }}
           />
           <div>
-            <h3 className="font-semibold text-lg">{selectedOrder.restaurant.name}</h3>
-            <p className="text-gray-600">{selectedOrder.orderItems.length} items</p>
+            <h3 className="font-semibold text-lg">{selectedOrder.restaurant?.name || 'Unknown Restaurant'}</h3>
+            <p className="text-gray-600">{selectedOrder.items?.length || selectedOrder.orderItems?.length || 0} items</p>
           </div>
         </div>
 
         <div className="mb-6">
           <h3 className="font-semibold text-lg mb-3">Order Items</h3>
           <div className="space-y-4">
-            {selectedOrder.orderItems.map((item, index) => (
+            {(selectedOrder.items || selectedOrder.orderItems || []).map((item, index) => (
               <div key={index} className="flex justify-between items-center border-b pb-3">
                 <div className="flex items-center">
                   <img
-                    src={item.dish.image || '/dish-placeholder.png'}
-                    alt={item.dish.name}
+                    src={item.dish?.image || '/dish-placeholder.png'}
+                    alt={item.dish?.name || 'Dish'}
                     className="w-12 h-12 rounded object-cover mr-3"
+                    onError={(e) => {
+                      e.target.src = '/dish-placeholder.png';
+                    }}
                   />
                   <div>
-                    <p className="font-medium">{item.dish.name}</p>
+                    <p className="font-medium">{item.dish?.name || 'Unknown Dish'}</p>
                     <p className="text-gray-600 text-sm">Qty: {item.quantity}</p>
                   </div>
                 </div>
-                <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                <p className="font-medium">${((item.price || item.priceAtTime || 0) * item.quantity).toFixed(2)}</p>
               </div>
             ))}
           </div>
@@ -130,19 +158,19 @@ const OrderDetailsPage = () => {
         <div className="border-t pt-4">
           <div className="flex justify-between mb-2">
             <span>Subtotal:</span>
-            <span>${selectedOrder.subTotal.toFixed(2)}</span>
+            <span>${selectedOrder.subTotal?.toFixed(2) || '0.00'}</span>
           </div>
           <div className="flex justify-between mb-2">
             <span>Delivery Fee:</span>
-            <span>${selectedOrder.deliveryFee.toFixed(2)}</span>
+            <span>${selectedOrder.deliveryFee?.toFixed(2) || '0.00'}</span>
           </div>
           <div className="flex justify-between mb-2">
             <span>Tax:</span>
-            <span>${selectedOrder.tax.toFixed(2)}</span>
+            <span>${selectedOrder.tax?.toFixed(2) || '0.00'}</span>
           </div>
           <div className="flex justify-between font-bold text-lg mt-2">
             <span>Total:</span>
-            <span>${selectedOrder.totalAmount.toFixed(2)}</span>
+            <span>${selectedOrder.totalAmount?.toFixed(2) || selectedOrder.total_price?.toFixed(2) || '0.00'}</span>
           </div>
         </div>
       </div>
@@ -152,15 +180,15 @@ const OrderDetailsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600 text-sm">Delivery Address</p>
-            <p className="font-medium">{selectedOrder.deliveryAddress}</p>
+            <p className="font-medium">{selectedOrder.deliveryAddress || 'Not specified'}</p>
           </div>
           <div>
             <p className="text-gray-600 text-sm">Payment Method</p>
-            <p className="font-medium">{selectedOrder.paymentMethod}</p>
+            <p className="font-medium">{selectedOrder.paymentMethod || 'Not specified'}</p>
           </div>
           <div>
             <p className="text-gray-600 text-sm">Contact Number</p>
-            <p className="font-medium">{selectedOrder.contactNumber}</p>
+            <p className="font-medium">{selectedOrder.contactNumber || 'Not specified'}</p>
           </div>
           <div>
             <p className="text-gray-600 text-sm">Special Instructions</p>
