@@ -2,49 +2,74 @@ const jwt = require('jsonwebtoken');
 const Customer = require('../models/Customer');
 const Favorite = require('../models/Favorite');
 const Restaurant = require('../models/Restaurant');
+const fs = require('fs');
+const path = require('path');
 
 
 // Get the authenticated user's profile
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const customer = await Customer.findById(userId);
-
+    const customer = await Customer.findById(req.user.id).lean();
+    
     if (!customer) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userProfile = customer.toObject();
-    delete userProfile.password;
+    // Construct full URL if profilePicture exists
+    if (customer.profilePicture) {
+      customer.profilePicture = `http://localhost:5000${customer.profilePicture}`;
+    }
 
-    res.status(200).json(userProfile);
+    delete customer.password;
+    res.status(200).json(customer);
+    
   } catch (error) {
     console.error('Error retrieving profile:', error);
-    res.status(500).json({ message: 'Error retrieving profile', error: error.message });
+    res.status(500).json({ 
+      message: 'Error retrieving profile', 
+      error: error.message 
+    });
   }
 };
 
-// Update the authenticated user's profile
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // user is set by authenticateJWT middleware
-    const { name, profilePicture, country, state } = req.body;
+    const userId = req.user.id;
+    const { name, country, state } = req.body;
+    
+    // Add /uploads/ prefix to filename
+    const profilePicture = req.file ? `/uploads/${req.file.filename}` : undefined;
+    
+    console.log('Processed profile picture path:', profilePicture); // Debug log
 
-    const customer = await Customer.findByIdAndUpdate(
-      userId,
-      { name, profilePicture, country, state, updatedAt: new Date() },
-      { new: true }
-    );
+    const oldCustomer = await Customer.findById(userId);
+    
+    const updateData = { 
+      name, 
+      country, 
+      state, 
+      updatedAt: new Date(),
+      ...(profilePicture && { profilePicture }) // Only add if exists
+    };
 
-    if (!customer) {
-      return res.status(404).json({ message: 'User not found' });
+    // Delete old image if it exists
+    if (profilePicture && oldCustomer.profilePicture) {
+      const oldImagePath = path.join(__dirname, '../', oldCustomer.profilePicture);
+      fs.unlink(oldImagePath, (err) => {
+        if (err) console.error('Failed to delete old image:', err);
+      });
     }
 
-    res.status(200).json({ message: 'Profile updated successfully' });
+    const customer = await Customer.findByIdAndUpdate(userId, updateData, { new: true });
+    res.status(200).json({ 
+      message: 'Profile updated successfully', 
+      customer 
+    });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Error updating profile', error: error.message });
+    res.status(500).json({ 
+      message: 'Error updating profile', 
+      error: error.message 
+    });
   }
 };
 

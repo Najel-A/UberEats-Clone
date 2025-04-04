@@ -5,7 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cors = require('cors');
-
+const path = require('path');
 
 
 // Import routes
@@ -19,18 +19,21 @@ const orderRoutes = require('./routes/orderRoutes');
 // Express app
 const app = express();
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // CORS configuration
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Origin', 'Accept'],
-    exposedHeaders: ['set-cookie']
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Origin', 'Accept'],
+  exposedHeaders: ['set-cookie']
 }));
+
+// Body parsing middleware
+app.use(express.json({ limit: '20mb' })); // For JSON data
+app.use(express.urlencoded({ limit: '20mb', extended: true })); // For form data
+
+// Serve images statically
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Session configuration
 app.use(session({

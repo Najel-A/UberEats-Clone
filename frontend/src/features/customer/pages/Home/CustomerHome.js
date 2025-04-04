@@ -38,7 +38,7 @@ const CustomerHome = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const profileMenuOpen = Boolean(anchorEl);
-
+  console.log(profile);
   useEffect(() => {
     if (token) {
       dispatch(fetchRestaurants());
@@ -110,7 +110,11 @@ const CustomerHome = () => {
       >
         <Box sx={{ p: 2, textAlign: 'center' }}>
           <Avatar sx={{ width: 56, height: 56, margin: 'auto' }}>
-            {user ? user.charAt(0).toUpperCase() : 'U'}
+            {profile?.profilePicture ? (
+              <img src={profile.profilePicture} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              profile?.name?.charAt(0)
+            )}
           </Avatar>
           <Typography variant="subtitle1" sx={{ mt: 1 }}>
             {profile?.name || user || 'User'}

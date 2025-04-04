@@ -35,11 +35,36 @@ export const updateCustomerProfile = createAsyncThunk(
   async (profileData, { getState, rejectWithValue }) => {
     try {
       const { token } = getState().auth;
+      const formData = new FormData();
+
+      // 1. Append all text fields
+      formData.append('name', profileData.name);
+      formData.append('country', profileData.country);
+      formData.append('state', profileData.state);
+
+      // 2. Handle profile picture (if it exists)
+      if (profileData.profilePicture) {
+        // If it's base64, convert to File object
+        if (typeof profileData.profilePicture === 'string' && 
+            profileData.profilePicture.startsWith('data:image')) {
+          const file = base64ToFile(profileData.profilePicture, 'profile.jpg');
+          formData.append('profilePicture', file);
+        } 
+        // If it's a File object (from file input)
+        else if (profileData.profilePicture instanceof File) {
+          formData.append('profilePicture', profileData.profilePicture);
+        }
+      }
+
+      // 3. Send with proper headers
       const response = await axios.put(
         'http://localhost:5000/api/customers/profile',
-        profileData,
+        formData,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data' // Required!
+          },
           withCredentials: true
         }
       );
@@ -49,6 +74,17 @@ export const updateCustomerProfile = createAsyncThunk(
     }
   }
 );
+
+// Helper function to convert base64 to File
+const base64ToFile = (base64, filename) => {
+  const arr = base64.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new File([u8arr], filename, { type: mime });
+};
 
 export const fetchFavorites = createAsyncThunk(
   'customer/fetchFavorites',
