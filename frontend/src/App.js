@@ -20,6 +20,8 @@ import OrderConfirmation from "./features/customer/pages/OrderConfirmation/Order
 import RestaurantLogin from "./features/restaurant/pages/Login/RestaurantLogin";
 import RestaurantSignup from "./features/restaurant/pages/Signup/RestaurantSignup";
 import RestaurantHome from "./features/restaurant/pages/Home/RestaurantHome";
+import RestaurantOrders from "./features/restaurant/pages/Orders/RestuarantOrders";
+import RestaurantProfile from "./features/restaurant/pages/Profile/RestaurantProfile";
 
 
 // Import Protected Routes
@@ -112,6 +114,18 @@ function AppRoutes() {
       <Route path="/restaurant/home" element={
         <ProtectedRoute>
           <RestaurantHome />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/restaurant/orders" element={
+        <ProtectedRoute>
+          <RestaurantOrders />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/restaurant/profile" element={
+        <ProtectedRoute>
+          <RestaurantProfile />
         </ProtectedRoute>
       } />
 
