@@ -62,6 +62,7 @@ exports.getCustomerOrders = async (req, res) => {
 exports.getRestaurantOrders = async (req, res) => {
     try {
         const restaurantId = req.user.id;
+        console.log('Restaurant ID:', restaurantId);
         const { status } = req.query;
 
         const query = { restaurant: restaurantId };
@@ -69,10 +70,10 @@ exports.getRestaurantOrders = async (req, res) => {
             query.status = status;
         }
 
-        const orders = await Order.find(query)
-            .populate('customer', 'name email')
+        const orders = await Order.find({ restaurant_id: restaurantId })
+            .populate('customer_id', 'name email')
             .populate({
-                path: 'orderItems.dish',
+                path: 'items.dish',
                 select: 'name image'
             })
             .sort({ createdAt: -1 });
@@ -94,10 +95,13 @@ exports.updateOrderStatus = async (req, res) => {
         const restaurantId = req.user.id;
         const { order_id } = req.params;
         const { status } = req.body;
+        console.log('Restaurant ID:', restaurantId);
+        console.log('Order ID:', order_id);
+        console.log('Status:', status);
 
         const order = await Order.findOne({
             _id: order_id,
-            restaurant: restaurantId
+            restaurant_id: restaurantId
         });
 
         if (!order) {

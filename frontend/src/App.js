@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./redux/store";
 
-// Import Pages
-import Home from "./pages/Home/Home";
+// Import Customer Pages
+import Home from "./pages/Home/Home"; // Main home page
 import CustomerLogin from "./features/customer/pages/Login/CustomerLogin";
 import CustomerSignup from "./features/customer/pages/Signup/CustomerSignup";
 import CustomerHome from "./features/customer/pages/Home/CustomerHome";
@@ -16,6 +16,12 @@ import OrderHistoryPage from "./features/customer/pages/Orders/OrderPage";
 import OrderDetailsPage from "./features/customer/pages/OrderDetails/OrderDetailsPage";
 import OrderConfirmation from "./features/customer/pages/OrderConfirmation/OrderConfirmation";
 
+// Import Restaurant Pages
+import RestaurantLogin from "./features/restaurant/pages/Login/RestaurantLogin";
+import RestaurantSignup from "./features/restaurant/pages/Signup/RestaurantSignup";
+import RestaurantHome from "./features/restaurant/pages/Home/RestaurantHome";
+
+
 // Import Protected Routes
 import ProtectedRoute from "./ProtectedRoutes";
 import PublicRoute from "./PublicRoutes";
@@ -23,6 +29,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+
+      {/* Customer Routes */}
 
       <Route path="/login/customer" element={
         <PublicRoute>
@@ -35,6 +43,8 @@ function AppRoutes() {
           <CustomerSignup />
         </PublicRoute>
       } />
+
+      {/* Customer Protected Routes */}
 
       <Route path="/customer/home" element={
         <ProtectedRoute>
@@ -83,6 +93,29 @@ function AppRoutes() {
           <OrderConfirmation />
         </ProtectedRoute>
       } />
+
+      {/* Restaurant Routes */}
+
+      <Route path="/login/restaurant" element={
+        <PublicRoute>
+          <RestaurantLogin />
+        </PublicRoute>
+      } />
+
+      <Route path="/signup/restaurant" element={
+        <PublicRoute>
+          <RestaurantSignup />
+        </PublicRoute>
+      } />
+
+      {/* Restaurant Protected Routes */}
+      <Route path="/restaurant/home" element={
+        <ProtectedRoute>
+          <RestaurantHome />
+        </ProtectedRoute>
+      } />
+
+
     </Routes>
   );
 }
