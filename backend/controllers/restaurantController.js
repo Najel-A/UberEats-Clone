@@ -1,4 +1,6 @@
 const Restaurant = require('../models/Restaurant');
+const fs = require('fs');
+const path = require('path');
 
 // Get restaurant profile
 exports.getProfile = async (req, res) => {
@@ -21,22 +23,54 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const restaurantId = req.user.id;
-    const { name, location, description, contactInfo, images, timings } = req.body;
-    console.log('Request Body: ', req.body);
-    // Add /uploads/ prefix to filename
+    const { name, description, location, contactInfo, openingHours } = req.body;
+    
+    // Handle profile picture the same way as customer side
     const profilePicture = req.file ? `/uploads/${req.file.filename}` : undefined;
+    console.log('Processed profile picture path:', profilePicture);
 
-    const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant) {
+    const oldRestaurant = await Restaurant.findById(restaurantId);
+    if (!oldRestaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    await Restaurant.findByIdAndUpdate(restaurantId, { name, location, description, contactInfo, images, timings }, { new: true });
+    // Prepare update data - keep structure similar to customer version
+    const updateData = { 
+      name,
+      description,
+      location: JSON.parse(location),
+      contactInfo: JSON.parse(contactInfo),
+      openingHours: JSON.parse(openingHours),
+      updatedAt: new Date(),
+      ...(profilePicture && { profilePicture }) // Same conditional spread
+    };
 
-    res.status(200).json({ message: 'Restaurant profile updated successfully' });
+    // Same image cleanup logic as customer side
+    if (profilePicture && oldRestaurant.profilePicture) {
+      const oldImagePath = path.join(__dirname, '../', oldRestaurant.profilePicture);
+      fs.unlink(oldImagePath, (err) => {
+        if (err) console.error('Failed to delete old image:', err);
+      });
+    }
+
+    const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+      restaurantId, 
+      updateData, 
+      { new: true }
+    );
+    
+    // Return the same response structure as customer side
+    res.status(200).json({ 
+      message: 'Profile updated successfully', 
+      restaurant: updatedRestaurant 
+    });
+
   } catch (error) {
     console.error('Error updating restaurant profile:', error);
-    res.status(500).json({ message: 'Error updating restaurant profile', error: error.message });
+    res.status(500).json({ 
+      message: 'Error updating restaurant profile', 
+      error: error.message 
+    });
   }
 };
 

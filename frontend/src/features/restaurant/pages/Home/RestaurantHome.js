@@ -47,6 +47,8 @@ const RestaurantHome = () => {
   } = useSelector((state) => state.order);
   
   const { user, token } = useSelector((state) => state.auth);
+  const { profile } = useSelector((state) => state.restaurants);
+  console.log(profile);
   
   // Gets Orders
   useEffect(() => {
@@ -118,7 +120,7 @@ const RestaurantHome = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider width={250} theme="light" breakpoint="lg" collapsedWidth="0">
         <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-          <Avatar size={64} src={user?.avatar || 'https://example.com/default-restaurant.jpg'} />
+          <Avatar size={64} src={profile?.profilePicture || 'https://example.com/default-restaurant.jpg'} />
           <Title level={4} style={{ marginTop: 16 }}>{user || 'My Restaurant'}</Title>
           <Text type="secondary">{user?.rating ? `${user.rating} ★` : 'No ratings yet'}</Text>
         </div>

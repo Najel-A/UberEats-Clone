@@ -48,25 +48,69 @@ export const fetchRestaurantMenu = createAsyncThunk(
   }
 );
 
-// Async thunk for updating restaurant profile
 export const updateRestaurantProfile = createAsyncThunk(
   'restaurants/updateProfile',
   async (profileData, { getState, rejectWithValue }) => {
     try {
       const { token } = getState().auth;
-      const response = await axios.put('http://localhost:5000/api/restaurants/profile', profileData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
-      });
+      const formData = new FormData();
+
+      // 1. Append all text/number fields directly
+      formData.append('name', profileData.name);
+      formData.append('description', profileData.description);
+
+      // 2. Append nested objects as JSON strings
+      formData.append('location', JSON.stringify(profileData.location));
+      formData.append('contactInfo', JSON.stringify(profileData.contactInfo));
+      formData.append('openingHours', JSON.stringify(profileData.openingHours));
+
+      // 3. Handle the single profile picture
+      if (profileData.profilePicture) {
+        // Case 1: It's a base64 string (from FileReader)
+        if (typeof profileData.profilePicture === 'string' && 
+            profileData.profilePicture.startsWith('data:image')) {
+          const file = dataURLtoFile(profileData.profilePicture, 'profile.jpg');
+          formData.append('profilePicture', file);
+        } 
+        // Case 2: It's already a File object (direct from file input)
+        else if (profileData.profilePicture instanceof File) {
+          formData.append('profilePicture', profileData.profilePicture);
+        }
+      }
+
+      const response = await axios.put(
+        'http://localhost:5000/api/restaurants/profile', 
+        formData, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          withCredentials: true
+        }
+      );
+
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
+
+// Helper function to convert base64/dataURL to File object
+function dataURLtoFile(dataurl, filename) {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  
+  return new File([u8arr], filename, { type: mime });
+}
 
 // Async thunk for getting restaurant profile
 export const fetchRestaurantProfile = createAsyncThunk(

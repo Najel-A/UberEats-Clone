@@ -9,8 +9,16 @@ import {
   LocationOn,
   Phone,
   Email,
-  Close
+  Close,
+  Public,
+  Flag
 } from '@mui/icons-material';
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 import { updateRestaurantProfile, fetchRestaurantProfile, resetSuccess } from '../../../../redux/slices/restaurantSlice';
 
 const RestaurantProfile = () => {
@@ -18,11 +26,12 @@ const RestaurantProfile = () => {
   const navigate = useNavigate();
   
   const { profile, loading, error, success } = useSelector(state => state.restaurants);
-  console.log(profile);
+  const { user } = useSelector(state => state.auth);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    profilePicture: '',
     location: {
       address: '',
       city: '',
@@ -35,7 +44,7 @@ const RestaurantProfile = () => {
       email: '',
       website: ''
     },
-    timings: {
+    openingHours: {
       monday: { open: '', close: '' },
       tuesday: { open: '', close: '' },
       wednesday: { open: '', close: '' },
@@ -43,14 +52,21 @@ const RestaurantProfile = () => {
       friday: { open: '', close: '' },
       saturday: { open: '', close: '' },
       sunday: { open: '', close: '' }
-    },
-    images: [],
-    cuisines: []
+    }
   });
-  console.log('Profile: ', profile);
-  const [newCuisine, setNewCuisine] = useState('');
-  const [newImage, setNewImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+
+  // Sample countries and states
+  const countries = [
+    { code: 'US', name: 'United States' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'UK', name: 'United Kingdom' }
+  ];
+
+  const statesByCountry = {
+    US: ['California', 'New York', 'Texas'],
+    CA: ['Ontario', 'Quebec', 'British Columbia'],
+    UK: ['England', 'Scotland', 'Wales']
+  };
 
   useEffect(() => {
     dispatch(fetchRestaurantProfile());
@@ -61,6 +77,7 @@ const RestaurantProfile = () => {
       setFormData({
         name: profile.name || '',
         description: profile.description || '',
+        profilePicture: profile.profilePicture || '',
         location: profile.location || {
           address: '',
           city: '',
@@ -73,7 +90,7 @@ const RestaurantProfile = () => {
           email: '',
           website: ''
         },
-        timings: profile.timings || {
+        openingHours: profile.openingHours || {
           monday: { open: '', close: '' },
           tuesday: { open: '', close: '' },
           wednesday: { open: '', close: '' },
@@ -81,19 +98,10 @@ const RestaurantProfile = () => {
           friday: { open: '', close: '' },
           saturday: { open: '', close: '' },
           sunday: { open: '', close: '' }
-        },
-        images: profile.images || [],
-        cuisines: profile.cuisines || []
+        }
       });
     }
   }, [profile]);
-
-  useEffect(() => {
-    if (success) {
-      dispatch(fetchRestaurantProfile());
-      dispatch(resetSuccess());
-    }
-  }, [success, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -107,16 +115,16 @@ const RestaurantProfile = () => {
           [child]: value
         }
       }));
-    } else if (name.includes('timings.')) {
+    } else if (name.includes('openingHours.')) {
       const parts = name.split('.');
       const day = parts[1];
       const timeType = parts[2];
       setFormData(prev => ({
         ...prev,
-        timings: {
-          ...prev.timings,
+        openingHours: {
+          ...prev.openingHours,
           [day]: {
-            ...prev.timings[day],
+            ...prev.openingHours[day],
             [timeType]: value
           }
         }
@@ -129,56 +137,26 @@ const RestaurantProfile = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const updatedData = {
-      ...formData,
-      images: newImage ? [...formData.images, newImage] : formData.images
-    };
-    await dispatch(updateRestaurantProfile(updatedData));
-    setNewImage(null);
-    setImagePreview('');
-  };
-
-  const handleImageUpload = (e) => {
+  const handleProfilePictureUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setNewImage(reader.result);
+        setFormData(prev => ({
+          ...prev,
+          profilePicture: reader.result
+        }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = (index) => {
-    const updatedImages = [...formData.images];
-    updatedImages.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      images: updatedImages
-    }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await dispatch(updateRestaurantProfile(formData));
   };
 
-  const addCuisine = () => {
-    if (newCuisine.trim() && !formData.cuisines.includes(newCuisine.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        cuisines: [...prev.cuisines, newCuisine.trim()]
-      }));
-      setNewCuisine('');
-    }
-  };
-
-  const removeCuisine = (cuisineToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      cuisines: prev.cuisines.filter(cuisine => cuisine !== cuisineToRemove)
-    }));
-  };
-
-  if (loading && !profile.name) {
+  if (loading && !profile) {
     return (
       <div className="container">
         <div className="d-flex justify-content-center my-4">
@@ -223,11 +201,63 @@ const RestaurantProfile = () => {
       <div className="card shadow-sm">
         <div className="card-body">
           <form onSubmit={handleSubmit}>
+            {/* Profile Picture */}
+            <div className="mb-4">
+              <h5 className="card-title">Profile Picture</h5>
+              <hr className="mb-4" />
+              
+              <div className="d-flex align-items-center gap-4">
+                <div className="position-relative">
+                  {formData.profilePicture ? (
+                    <img
+                      src={formData.profilePicture}
+                      alt="Profile"
+                      className="rounded-circle"
+                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div 
+                      className="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+                      style={{ width: '100px', height: '100px' }}
+                    >
+                      <span className="text-white fs-4">
+                        {formData.name ? formData.name.charAt(0).toUpperCase() : 'R'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="btn btn-outline-primary">
+                    <AddPhotoAlternate className="me-2" />
+                    {formData.profilePicture ? 'Change Photo' : 'Upload Photo'}
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleProfilePictureUpload}
+                    />
+                  </label>
+                  
+                  {formData.profilePicture && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger ms-2"
+                      onClick={() => setFormData(prev => ({ ...prev, profilePicture: '' }))}
+                    >
+                      <Close className="me-1" />
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Basic Information */}
-            <h5 className="card-title mt-2">Basic Information</h5>
+            <h5 className="card-title">Basic Information</h5>
             <hr className="mb-4" />
 
-            <div className="row g-3">
+            <div className="row g-3 mb-4">
               <div className="col-12 col-md-6">
                 <div className="form-floating">
                   <input
@@ -257,79 +287,11 @@ const RestaurantProfile = () => {
               </div>
             </div>
 
-            {/* Images */}
-            <h5 className="card-title mt-4">Restaurant Images</h5>
-            <hr className="mb-4" />
-
-            <div className="d-flex flex-wrap gap-3 mb-3">
-              {formData.images.map((img, index) => (
-                <div key={index} className="position-relative">
-                  <img
-                    src={img}
-                    alt={`Restaurant ${index + 1}`}
-                    className="img-thumbnail"
-                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                  />
-                  <button
-                    type="button"
-                    className="btn-close position-absolute top-0 end-0 m-1"
-                    onClick={() => removeImage(index)}
-                  />
-                </div>
-              ))}
-              <label className="btn btn-outline-primary" style={{ width: '100px', height: '100px' }}>
-                <AddPhotoAlternate />
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                />
-              </label>
-              {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="img-thumbnail"
-                  style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                />
-              )}
-            </div>
-
-            {/* Cuisines */}
-            <h5 className="card-title mt-4">Cuisines</h5>
-            <hr className="mb-4" />
-
-            <div className="input-group mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Add Cuisine"
-                value={newCuisine}
-                onChange={(e) => setNewCuisine(e.target.value)}
-              />
-              <button className="btn btn-outline-secondary" type="button" onClick={addCuisine}>
-                Add
-              </button>
-            </div>
-            <div className="d-flex flex-wrap gap-2 mb-3">
-              {formData.cuisines.map((cuisine, index) => (
-                <span key={index} className="badge bg-secondary">
-                  {cuisine}
-                  <button
-                    type="button"
-                    className="btn-close btn-close-white ms-2"
-                    onClick={() => removeCuisine(cuisine)}
-                  />
-                </span>
-              ))}
-            </div>
-
             {/* Location */}
-            <h5 className="card-title mt-4">Location</h5>
+            <h5 className="card-title">Location</h5>
             <hr className="mb-4" />
 
-            <div className="row g-3">
+            <div className="row g-3 mb-4">
               <div className="col-12">
                 <div className="input-group">
                   <span className="input-group-text"><LocationOn /></span>
@@ -354,14 +316,41 @@ const RestaurantProfile = () => {
                 />
               </div>
               <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="State/Province"
-                  name="location.state"
-                  value={formData.location.state}
-                  onChange={handleChange}
-                />
+                <FormControl fullWidth>
+                  <InputLabel>Country</InputLabel>
+                  <Select
+                    name="location.country"
+                    value={formData.location.country}
+                    onChange={handleChange}
+                    label="Country"
+                    startAdornment={<Public sx={{ color: 'action.active', mr: 1 }} />}
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country.code} value={country.code}>
+                        {country.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="col-md-6">
+                <FormControl fullWidth>
+                  <InputLabel>State/Province</InputLabel>
+                  <Select
+                    name="location.state"
+                    value={formData.location.state}
+                    onChange={handleChange}
+                    label="State/Province"
+                    disabled={!formData.location.country}
+                    startAdornment={<Flag sx={{ color: 'action.active', mr: 1 }} />}
+                  >
+                    {formData.location.country && statesByCountry[formData.location.country]?.map((state) => (
+                      <MenuItem key={state} value={state}>
+                        {state}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </div>
               <div className="col-md-6">
                 <input
@@ -373,23 +362,13 @@ const RestaurantProfile = () => {
                   onChange={handleChange}
                 />
               </div>
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Country"
-                  name="location.country"
-                  value={formData.location.country}
-                  onChange={handleChange}
-                />
-              </div>
             </div>
 
             {/* Contact Information */}
-            <h5 className="card-title mt-4">Contact Information</h5>
+            <h5 className="card-title">Contact Information</h5>
             <hr className="mb-4" />
 
-            <div className="row g-3">
+            <div className="row g-3 mb-4">
               <div className="col-md-6">
                 <div className="input-group">
                   <span className="input-group-text"><Phone /></span>
@@ -429,28 +408,28 @@ const RestaurantProfile = () => {
             </div>
 
             {/* Opening Hours */}
-            <h5 className="card-title mt-4">Opening Hours</h5>
+            <h5 className="card-title">Opening Hours</h5>
             <hr className="mb-4" />
 
-            <div className="row g-3">
-              {Object.entries(formData.timings).map(([day, times]) => (
+            <div className="row g-3 mb-4">
+              {Object.entries(formData.openingHours).map(([day, times]) => (
                 <div className="col-12 col-md-6" key={day}>
                   <div className="d-flex align-items-center gap-2">
                     <Schedule className="text-muted" />
                     <span className="text-capitalize" style={{ minWidth: '100px' }}>{day}</span>
                     <input
-                      type="text"
+                      type="time"
                       className="form-control"
                       placeholder="09:00"
-                      name={`timings.${day}.open`}
+                      name={`openingHours.${day}.open`}
                       value={times.open}
                       onChange={handleChange}
                     />
                     <input
-                      type="text"
+                      type="time"
                       className="form-control"
                       placeholder="22:00"
-                      name={`timings.${day}.close`}
+                      name={`openingHours.${day}.close`}
                       value={times.close}
                       onChange={handleChange}
                     />
@@ -459,7 +438,7 @@ const RestaurantProfile = () => {
               ))}
             </div>
 
-            <div className="d-flex justify-content-end mt-4">
+            <div className="d-flex justify-content-end">
               <button
                 type="submit"
                 className="btn btn-primary btn-lg"

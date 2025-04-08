@@ -9,35 +9,44 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     default: "restaurant"
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    validate: {
-      validator: function(v) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-      },
-      message: props => `${props.value} is not a valid email!`
-    }
-  },
-  password: {
-    type: String,
-    required: true,
-  },
   description: {
     type: String,
   },
   location: {
-    type: String,
+    address: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
   },
   contact_info: {
-    type: String,
+    phone: String,
+    email: {
+      type: String,
+      validate: {
+        validator: function(v) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: props => `${props.value} is not a valid email!`
+      }
+    },
+    website: String
   },
-  timings: {
-    type: Map,
+  openingHours: {
+    monday: { open: String, close: String },
+    tuesday: { open: String, close: String },
+    wednesday: { open: String, close: String },
+    thursday: { open: String, close: String },
+    friday: { open: String, close: String },
+    saturday: { open: String, close: String },
+    sunday: { open: String, close: String }
   },
   profilePicture: {
     type: String,
+  },
+  password: {
+    type: String,
+    required: true,
   }
 }, {
   timestamps: { 
