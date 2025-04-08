@@ -2,12 +2,13 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 const initialState = {
+  profile: null,
   restaurants: [],
-  menu: [],  // Changed from null to empty array
+  menu: [],
   loading: false,
+  success: false,
   error: null
 };
-
 // Async thunk for fetching restaurants
 export const fetchRestaurants = createAsyncThunk(
   'restaurants/fetchRestaurants',
@@ -67,12 +68,32 @@ export const updateRestaurantProfile = createAsyncThunk(
   }
 );
 
+// Async thunk for getting restaurant profile
+export const fetchRestaurantProfile = createAsyncThunk(
+  'restaurants/fetchProfile',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { token } = getState().auth;
+      const response = await axios.get('http://localhost:5000/api/restaurants/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 const restaurantSlice = createSlice({
   name: 'restaurants',
   initialState,
   reducers: {
     clearMenu: (state) => {
       state.menu = [];
+    },
+    resetSuccess: (state) => {
+      state.success = false;
     }
   },
   extraReducers: (builder) => {
@@ -104,9 +125,38 @@ const restaurantSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.menu = [];
+      })
+
+      // Profile reducers
+      .addCase(fetchRestaurantProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRestaurantProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
+        })
+        .addCase(fetchRestaurantProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Update profile reducers
+      .addCase(updateRestaurantProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateRestaurantProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
+        state.success = true;
+      })
+      .addCase(updateRestaurantProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });
 
-export const { clearMenu } = restaurantSlice.actions;
+export const { clearMenu, resetSuccess } = restaurantSlice.actions;
 export default restaurantSlice.reducer;

@@ -13,7 +13,6 @@ const RestaurantLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const result = await dispatch(loginUser(email, password));
-    console.log(result);
     navigate("/restaurant/home");
     // if (result.payload && !result.error) {
     //   navigate("/customer/home");

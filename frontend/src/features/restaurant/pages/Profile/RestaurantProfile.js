@@ -2,22 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Avatar,
-  CircularProgress,
-  Alert,
-  Paper,
-  Divider,
-  Grid,
-  InputAdornment,
-  IconButton,
-  Chip
-} from '@mui/material';
-import {
   ArrowBack,
   Save,
   AddPhotoAlternate,
@@ -27,12 +11,15 @@ import {
   Email,
   Close
 } from '@mui/icons-material';
-import { updateRestaurantProfile } from '../../../../redux/slices/restaurantSlice';
+import { updateRestaurantProfile, fetchRestaurantProfile, resetSuccess } from '../../../../redux/slices/restaurantSlice';
 
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { profile, loading, error, success } = useSelector((state) => state.restaurant);
+  
+  const { profile, loading, error, success } = useSelector(state => state.restaurants);
+  console.log(profile);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -60,9 +47,14 @@ const RestaurantProfile = () => {
     images: [],
     cuisines: []
   });
+  console.log('Profile: ', profile);
   const [newCuisine, setNewCuisine] = useState('');
   const [newImage, setNewImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+
+  useEffect(() => {
+    dispatch(fetchRestaurantProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     if (profile) {
@@ -96,10 +88,16 @@ const RestaurantProfile = () => {
     }
   }, [profile]);
 
+  useEffect(() => {
+    if (success) {
+      dispatch(fetchRestaurantProfile());
+      dispatch(resetSuccess());
+    }
+  }, [success, dispatch]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Handle nested objects
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
@@ -131,14 +129,15 @@ const RestaurantProfile = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const updatedData = {
       ...formData,
-      // Convert images array to the format your backend expects
       images: newImage ? [...formData.images, newImage] : formData.images
     };
-    dispatch(updateRestaurantProfile(updatedData));
+    await dispatch(updateRestaurantProfile(updatedData));
+    setNewImage(null);
+    setImagePreview('');
   };
 
   const handleImageUpload = (e) => {
@@ -147,7 +146,7 @@ const RestaurantProfile = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
-        setNewImage(reader.result); // Store as base64 string
+        setNewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -179,312 +178,301 @@ const RestaurantProfile = () => {
     }));
   };
 
+  if (loading && !profile.name) {
+    return (
+      <div className="container">
+        <div className="d-flex justify-content-center my-4">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Container maxWidth="md">
-      <Box sx={{ my: 4 }}>
-        <Button
-          startIcon={<ArrowBack />}
-          onClick={() => navigate(-1)}
-          sx={{ mb: 2 }}
-        >
-          Back to Dashboard
-        </Button>
+    <div className="container py-4">
+      <button 
+        className="btn btn-outline-secondary mb-3"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowBack className="me-2" />
+        Back to Dashboard
+      </button>
 
-        <Typography variant="h4" component="h1" gutterBottom>
-          Edit Restaurant Profile
-        </Typography>
+      <h1 className="mb-4">Edit Restaurant Profile</h1>
 
-        {loading && <CircularProgress sx={{ my: 4 }} />}
+      {loading && (
+        <div className="spinner-border my-4" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      )}
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <div className="alert alert-danger mb-3">
+          {error}
+        </div>
+      )}
 
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            Profile updated successfully!
-          </Alert>
-        )}
+      {success && (
+        <div className="alert alert-success mb-3">
+          Profile updated successfully!
+        </div>
+      )}
 
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Box component="form" onSubmit={handleSubmit}>
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
             {/* Basic Information */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-              Basic Information
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <h5 className="card-title mt-2">Basic Information</h5>
+            <hr className="mb-4" />
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Restaurant Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  multiline
-                  rows={4}
-                />
-              </Grid>
-            </Grid>
+            <div className="row g-3">
+              <div className="col-12 col-md-6">
+                <div className="form-floating">
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                  <label htmlFor="name">Restaurant Name</label>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="form-floating">
+                  <textarea
+                    className="form-control"
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    style={{ height: '100px' }}
+                  />
+                  <label htmlFor="description">Description</label>
+                </div>
+              </div>
+            </div>
 
             {/* Images */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              Restaurant Images
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <h5 className="card-title mt-4">Restaurant Images</h5>
+            <hr className="mb-4" />
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+            <div className="d-flex flex-wrap gap-3 mb-3">
               {formData.images.map((img, index) => (
-                <Box key={index} sx={{ position: 'relative' }}>
-                  <Avatar
+                <div key={index} className="position-relative">
+                  <img
                     src={img}
-                    variant="rounded"
-                    sx={{ width: 100, height: 100 }}
+                    alt={`Restaurant ${index + 1}`}
+                    className="img-thumbnail"
+                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
                   />
-                  <IconButton
-                    size="small"
-                    sx={{ 
-                      position: 'absolute', 
-                      top: 0, 
-                      right: 0,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0,0,0,0.7)'
-                      }
-                    }}
+                  <button
+                    type="button"
+                    className="btn-close position-absolute top-0 end-0 m-1"
                     onClick={() => removeImage(index)}
-                  >
-                    <Close fontSize="small" />
-                  </IconButton>
-                </Box>
+                  />
+                </div>
               ))}
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<AddPhotoAlternate />}
-                sx={{ width: 100, height: 100 }}
-              >
-                Add Photo
+              <label className="btn btn-outline-primary" style={{ width: '100px', height: '100px' }}>
+                <AddPhotoAlternate />
                 <input
                   type="file"
                   hidden
                   accept="image/*"
                   onChange={handleImageUpload}
                 />
-              </Button>
+              </label>
               {imagePreview && (
-                <Avatar
+                <img
                   src={imagePreview}
-                  variant="rounded"
-                  sx={{ width: 100, height: 100 }}
+                  alt="Preview"
+                  className="img-thumbnail"
+                  style={{ width: '100px', height: '100px', objectFit: 'cover' }}
                 />
               )}
-            </Box>
+            </div>
 
             {/* Cuisines */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              Cuisines
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <h5 className="card-title mt-4">Cuisines</h5>
+            <hr className="mb-4" />
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                label="Add Cuisine"
+            <div className="input-group mb-3">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Add Cuisine"
                 value={newCuisine}
                 onChange={(e) => setNewCuisine(e.target.value)}
-                sx={{ mr: 2 }}
               />
-              <Button variant="outlined" onClick={addCuisine}>
+              <button className="btn btn-outline-secondary" type="button" onClick={addCuisine}>
                 Add
-              </Button>
-            </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+              </button>
+            </div>
+            <div className="d-flex flex-wrap gap-2 mb-3">
               {formData.cuisines.map((cuisine, index) => (
-                <Chip
-                  key={index}
-                  label={cuisine}
-                  onDelete={() => removeCuisine(cuisine)}
-                />
+                <span key={index} className="badge bg-secondary">
+                  {cuisine}
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white ms-2"
+                    onClick={() => removeCuisine(cuisine)}
+                  />
+                </span>
               ))}
-            </Box>
+            </div>
 
             {/* Location */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              Location
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <h5 className="card-title mt-4">Location</h5>
+            <hr className="mb-4" />
 
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address"
-                  name="location.address"
-                  value={formData.location.address}
-                  onChange={handleChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationOn />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="City"
+            <div className="row g-3">
+              <div className="col-12">
+                <div className="input-group">
+                  <span className="input-group-text"><LocationOn /></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Address"
+                    name="location.address"
+                    value={formData.location.address}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="City"
                   name="location.city"
                   value={formData.location.city}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="State/Province"
+              </div>
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="State/Province"
                   name="location.state"
                   value={formData.location.state}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Postal Code"
+              </div>
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Postal Code"
                   name="location.postalCode"
                   value={formData.location.postalCode}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Country"
+              </div>
+              <div className="col-md-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Country"
                   name="location.country"
                   value={formData.location.country}
                   onChange={handleChange}
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
             {/* Contact Information */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              Contact Information
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <h5 className="card-title mt-4">Contact Information</h5>
+            <hr className="mb-4" />
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  name="contactInfo.phone"
-                  value={formData.contactInfo.phone}
-                  onChange={handleChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Phone />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  name="contactInfo.email"
-                  type="email"
-                  value={formData.contactInfo.email}
-                  onChange={handleChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Website"
+            <div className="row g-3">
+              <div className="col-md-6">
+                <div className="input-group">
+                  <span className="input-group-text"><Phone /></span>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="Phone Number"
+                    name="contactInfo.phone"
+                    value={formData.contactInfo.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="input-group">
+                  <span className="input-group-text"><Email /></span>
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="Email"
+                    name="contactInfo.email"
+                    value={formData.contactInfo.email}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="col-12">
+                <input
+                  type="url"
+                  className="form-control"
+                  placeholder="Website"
                   name="contactInfo.website"
                   value={formData.contactInfo.website}
                   onChange={handleChange}
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
             {/* Opening Hours */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              Opening Hours
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <h5 className="card-title mt-4">Opening Hours</h5>
+            <hr className="mb-4" />
 
-            <Grid container spacing={3}>
+            <div className="row g-3">
               {Object.entries(formData.timings).map(([day, times]) => (
-                <Grid item xs={12} sm={6} key={day}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Schedule sx={{ mr: 1, color: 'action.active' }} />
-                    <Typography sx={{ minWidth: 100 }}>
-                      {day.charAt(0).toUpperCase() + day.slice(1)}
-                    </Typography>
-                    <TextField
-                      label="Open"
+                <div className="col-12 col-md-6" key={day}>
+                  <div className="d-flex align-items-center gap-2">
+                    <Schedule className="text-muted" />
+                    <span className="text-capitalize" style={{ minWidth: '100px' }}>{day}</span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="09:00"
                       name={`timings.${day}.open`}
                       value={times.open}
                       onChange={handleChange}
-                      sx={{ mr: 2, width: 100 }}
-                      placeholder="09:00"
                     />
-                    <TextField
-                      label="Close"
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="22:00"
                       name={`timings.${day}.close`}
                       value={times.close}
                       onChange={handleChange}
-                      sx={{ width: 100 }}
-                      placeholder="22:00"
                     />
-                  </Box>
-                </Grid>
+                  </div>
+                </div>
               ))}
-            </Grid>
+            </div>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
-              <Button
+            <div className="d-flex justify-content-end mt-4">
+              <button
                 type="submit"
-                variant="contained"
-                color="primary"
-                size="large"
-                startIcon={<Save />}
+                className="btn btn-primary btn-lg"
                 disabled={loading}
               >
+                <Save className="me-2" />
                 {loading ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 

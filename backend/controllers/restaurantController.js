@@ -5,11 +5,11 @@ exports.getProfile = async (req, res) => {
   try {
     const restaurantId = req.user.id;
 
-    const restaurant = await Restaurant.findById(restaurantId);
+    const restaurant = await Restaurant.findById(restaurantId).lean();
     if (!restaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
-
+    console.log('Restaurant: ', restaurant);
     res.status(200).json(restaurant);
   } catch (error) {
     console.error('Error retrieving restaurant profile:', error);
@@ -22,6 +22,9 @@ exports.updateProfile = async (req, res) => {
   try {
     const restaurantId = req.user.id;
     const { name, location, description, contactInfo, images, timings } = req.body;
+    console.log('Request Body: ', req.body);
+    // Add /uploads/ prefix to filename
+    const profilePicture = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {

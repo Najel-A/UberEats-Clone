@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRestaurantOrders } from '../../../../redux/slices/orderSlice';
 import { logout } from '../../../../redux/slices/authSlice';
+import { fetchRestaurantProfile } from '../../../../redux/slices/restaurantSlice';
 import OrderCard from '../../components/Order/OrderCard';
 
 const { Header, Content, Sider } = Layout;
@@ -45,13 +46,20 @@ const RestaurantHome = () => {
     restaurantOrdersError 
   } = useSelector((state) => state.order);
   
-  const { user } = useSelector((state) => state.auth);
-
+  const { user, token } = useSelector((state) => state.auth);
+  
+  // Gets Orders
   useEffect(() => {
     if (user) {
       dispatch(fetchRestaurantOrders());
     }
   }, [dispatch, user]);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchRestaurantProfile());
+    }
+  }, [dispatch, token]);
 
   // Calculate dashboard stats
   const stats = {
