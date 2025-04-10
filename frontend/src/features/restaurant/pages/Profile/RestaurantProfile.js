@@ -27,7 +27,6 @@ const RestaurantProfile = () => {
   
   const { profile, loading, error, success } = useSelector(state => state.restaurants);
   const { user } = useSelector(state => state.auth);
-
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -103,6 +102,8 @@ const RestaurantProfile = () => {
     }
   }, [profile]);
 
+  //console.log('formData:', formData);
+  console.log('Profile Picture URL:', formData.profilePicture);
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -154,6 +155,7 @@ const RestaurantProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await dispatch(updateRestaurantProfile(formData));
+    dispatch(fetchRestaurantProfile());
   };
 
   if (loading && !profile) {

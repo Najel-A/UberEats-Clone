@@ -11,6 +11,13 @@ exports.getProfile = async (req, res) => {
     if (!restaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
+
+    // Construct full URL if profilePicture exists
+    if (restaurant.profilePicture) {
+      restaurant.profilePicture = `http://localhost:5000${restaurant.profilePicture}`;
+    }
+    delete restaurant.password;
+    
     console.log('Restaurant: ', restaurant);
     res.status(200).json(restaurant);
   } catch (error) {

@@ -48,7 +48,7 @@ const RestaurantHome = () => {
   
   const { user, token } = useSelector((state) => state.auth);
   const { profile } = useSelector((state) => state.restaurants);
-  console.log(profile);
+  // console.log(profile);
   
   // Gets Orders
   useEffect(() => {
