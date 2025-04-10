@@ -32,9 +32,10 @@ export const fetchRestaurantMenu = createAsyncThunk(
   'restaurants/fetchRestaurantMenu',
   async (restaurantId, { getState, rejectWithValue }) => {
     try {
-      const { token } = getState().auth;
+      const { id, token } = getState().auth;
+      console.log('Restaurant ID:', id); // Log the restaurantId
       const response = await axios.get(
-        `http://localhost:5000/api/restaurants/${restaurantId}/dishes`,
+        `http://localhost:5000/api/restaurants/${id}/dishes`,
         {
           headers: {
             Authorization: `Bearer ${token}`

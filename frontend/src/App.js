@@ -22,6 +22,7 @@ import RestaurantSignup from "./features/restaurant/pages/Signup/RestaurantSignu
 import RestaurantHome from "./features/restaurant/pages/Home/RestaurantHome";
 import RestaurantOrders from "./features/restaurant/pages/Orders/RestuarantOrders";
 import RestaurantProfile from "./features/restaurant/pages/Profile/RestaurantProfile";
+import RestaurantMenuPage from "./features/restaurant/pages/Menu/RestaurantMenu";
 
 
 // Import Protected Routes
@@ -126,6 +127,12 @@ function AppRoutes() {
       <Route path="/restaurant/profile" element={
         <ProtectedRoute>
           <RestaurantProfile />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/restaurant/menu" element={
+        <ProtectedRoute>
+          <RestaurantMenuPage />
         </ProtectedRoute>
       } />
 

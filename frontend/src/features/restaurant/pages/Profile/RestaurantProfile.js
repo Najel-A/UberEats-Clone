@@ -19,14 +19,14 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { updateRestaurantProfile, fetchRestaurantProfile, resetSuccess } from '../../../../redux/slices/restaurantSlice';
+import { updateRestaurantProfile, fetchRestaurantProfile } from '../../../../redux/slices/restaurantSlice';
 
 const RestaurantProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
   const { profile, loading, error, success } = useSelector(state => state.restaurants);
-  const { user } = useSelector(state => state.auth);
+  //const { user } = useSelector(state => state.auth);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
