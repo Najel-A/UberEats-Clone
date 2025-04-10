@@ -17,7 +17,7 @@ import {
   DialogActions
 } from '@mui/material';
 import { Fastfood, Edit, Delete } from '@mui/icons-material';
-//import { deleteDish } from '../../../../redux/slices/restaurantSlice';
+import { deleteDish } from '../../../../redux/slices/restaurantSlice';
 
 const DishCard = ({ dish }) => {
   const dispatch = useDispatch();
@@ -25,15 +25,14 @@ const DishCard = ({ dish }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const handleEdit = () => {
-    navigate(`/dishes/edit/${dish._id}`, { state: { dish } });
+    navigate(`/restaurant/menu/edit-dish/${dish._id}`, { state: { dish } });
   };
-
   const handleDelete = () => {
     setDeleteConfirm(true);
   };
 
   const confirmDelete = () => {
-    //dispatch(deleteDish(dish._id));
+    dispatch(deleteDish({dishId: dish._id}));
     setDeleteConfirm(false);
   };
 

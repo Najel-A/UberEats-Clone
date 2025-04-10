@@ -24,7 +24,6 @@ const RestaurantMenuPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { menu, loading, error } = useSelector(state => state.restaurants);
-  const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [newDish, setNewDish] = useState({
     name: '',
     ingredients: '',
@@ -41,8 +40,8 @@ const RestaurantMenuPage = () => {
     dispatch(fetchRestaurantMenu());
   }, [dispatch]);
 
-  const handleCreateOpen = () => {
-    setOpenCreateDialog(true);
+  const handleAddDish = () => {
+    navigate('add-dish');
   };
 
   const handleGoBack = () => {
@@ -69,7 +68,7 @@ const RestaurantMenuPage = () => {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={handleCreateOpen}
+          onClick={handleAddDish}
           sx={{
             backgroundColor: 'primary.main',
             '&:hover': {

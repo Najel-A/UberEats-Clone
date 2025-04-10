@@ -7,7 +7,9 @@ const initialState = {
   menu: [],
   loading: false,
   success: false,
-  error: null
+  error: null,
+  dishLoading: false,
+  dishError: null,
 };
 // Async thunk for fetching restaurants
 export const fetchRestaurants = createAsyncThunk(
@@ -130,6 +132,96 @@ export const fetchRestaurantProfile = createAsyncThunk(
   }
 );
 
+// Async thunk for creating a new dish
+export const createDish = createAsyncThunk(
+  'restaurants/createDish',
+  async ({ dishData, restaurantId }, { getState, rejectWithValue }) => {
+    try {
+      const { token, id } = getState().auth;
+      
+      const response = await axios.post(
+        `http://localhost:5000/api/restaurants/${id}/dishes`,
+        dishData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Async thunk for getting dish details
+export const fetchDishDetails = createAsyncThunk(
+  'restaurants/fetchDishDetails',
+  async ({ restaurantId, dishId }, { getState, rejectWithValue }) => {
+    try {
+      const { token, id } = getState().auth;
+      const response = await axios.get(
+        `http://localhost:5000/api/restaurants/${id}/dishes/${dishId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Async thunk for updating dish details
+export const updateDish = createAsyncThunk(
+  'restaurants/updateDish',
+  async ({ restaurantId, dishId, dishData }, { getState, rejectWithValue }) => {
+    try {
+      const { token, id } = getState().auth;
+      const response = await axios.put(
+        `http://localhost:5000/api/restaurants/${id}/dishes/${dishId}`,
+        dishData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Async thunk for deleting a dish
+export const deleteDish = createAsyncThunk(
+  'restaurants/deleteDish',
+  async ({ restaurantId, dishId }, { getState, rejectWithValue }) => {
+    try {
+      const { token, id } = getState().auth;
+      await axios.delete(
+        `http://localhost:5000/api/restaurants/${id}/dishes/${dishId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return dishId; // Return the deleted dish ID
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 const restaurantSlice = createSlice({
   name: 'restaurants',
   initialState,
@@ -139,6 +231,10 @@ const restaurantSlice = createSlice({
     },
     resetSuccess: (state) => {
       state.success = false;
+    },
+    resetDishState: (state) => {
+      state.dishLoading = false;
+      state.dishError = null;
     }
   },
   extraReducers: (builder) => {
@@ -199,9 +295,70 @@ const restaurantSlice = createSlice({
       .addCase(updateRestaurantProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // Dish reducers
+      .addCase(createDish.pending, (state) => {
+        state.dishLoading = true;
+        state.dishError = null;
+      })
+      .addCase(createDish.fulfilled, (state, action) => {
+        state.dishLoading = false;
+        // Add the new dish to the menu array
+        state.menu = [...state.menu, action.payload];
+        state.success = true;
+      })
+      .addCase(createDish.rejected, (state, action) => {
+        state.dishLoading = false;
+        state.dishError = action.payload;
+      })
+
+      .addCase(fetchDishDetails.pending, (state) => {
+        state.dishLoading = true;
+        state.dishError = null;
+      })
+      .addCase(fetchDishDetails.fulfilled, (state, action) => {
+        state.dishLoading = false;
+        state.currentDish = action.payload;
+      })
+      .addCase(fetchDishDetails.rejected, (state, action) => {
+        state.dishLoading = false;
+        state.dishError = action.payload;
+      })
+      .addCase(updateDish.pending, (state) => {
+        state.dishLoading = true;
+        state.dishError = null;
+      })
+      .addCase(updateDish.fulfilled, (state, action) => {
+        state.dishLoading = false;
+        // Update the dish in the menu array
+        state.menu = state.menu.map(dish => 
+          dish._id === action.payload._id ? action.payload : dish
+        );
+        state.success = true;
+      })
+      .addCase(updateDish.rejected, (state, action) => {
+        state.dishLoading = false;
+        state.dishError = action.payload;
+      })
+
+      // Deleting a dish reducers
+      .addCase(deleteDish.pending, (state) => {
+        state.dishLoading = true;
+        state.dishError = null;
+      })
+      .addCase(deleteDish.fulfilled, (state, action) => {
+        state.dishLoading = false;
+        // Remove the deleted dish from the menu array
+        state.menu = state.menu.filter(dish => dish._id !== action.payload);
+        state.success = true;
+      })
+      .addCase(deleteDish.rejected, (state, action) => {
+        state.dishLoading = false;
+        state.dishError = action.payload;
       });
   }
 });
 
-export const { clearMenu, resetSuccess } = restaurantSlice.actions;
+export const { clearMenu, resetSuccess, resetDishState } = restaurantSlice.actions;
 export default restaurantSlice.reducer;

@@ -23,7 +23,8 @@ import RestaurantHome from "./features/restaurant/pages/Home/RestaurantHome";
 import RestaurantOrders from "./features/restaurant/pages/Orders/RestuarantOrders";
 import RestaurantProfile from "./features/restaurant/pages/Profile/RestaurantProfile";
 import RestaurantMenuPage from "./features/restaurant/pages/Menu/RestaurantMenu";
-
+import NewDish from "./features/restaurant/pages/Menu/AddDish";
+import EditDish from "./features/restaurant/pages/Menu/EditDish";
 
 // Import Protected Routes
 import ProtectedRoute from "./ProtectedRoutes";
@@ -133,6 +134,18 @@ function AppRoutes() {
       <Route path="/restaurant/menu" element={
         <ProtectedRoute>
           <RestaurantMenuPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/restaurant/menu/add-dish" element={
+        <ProtectedRoute>
+          <NewDish />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/restaurant/menu/edit-dish/:dishId" element={
+        <ProtectedRoute>
+          <EditDish />
         </ProtectedRoute>
       } />
 
