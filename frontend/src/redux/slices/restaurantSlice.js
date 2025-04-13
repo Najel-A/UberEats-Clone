@@ -194,21 +194,30 @@ export const fetchDishDetails = createAsyncThunk(
 );
 
 // Async thunk for updating dish details
+// Async thunk for updating dish details (with image upload support)
 export const updateDish = createAsyncThunk(
   'restaurants/updateDish',
   async ({ restaurantId, dishId, dishData }, { getState, rejectWithValue }) => {
     try {
-      const { token, id } = getState().auth;
+      const { id, token } = getState().auth;
+      
+      // Determine content type based on whether we're sending FormData
+      const isFormData = dishData instanceof FormData;
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+      
+      // Only set Content-Type if not FormData (let browser set it with proper boundary)
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+      
       const response = await axios.put(
         `http://localhost:5000/api/restaurants/${id}/dishes/${dishId}`,
         dishData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers }
       );
+      
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

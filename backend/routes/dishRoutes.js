@@ -10,7 +10,7 @@ router.get('/restaurants/:restaurantId/dishes/:dishId', dishController.getDishDe
 
 // Protected routes for restaurant
 router.post('/restaurants/:restaurantId/dishes', isAuthenticated, isRestaurant, upload.single('image'), dishController.addDish);
-router.put('/restaurants/:restaurantId/dishes/:dishId', isAuthenticated, isRestaurant, dishController.updateDish);
+router.put('/restaurants/:restaurantId/dishes/:dishId', isAuthenticated, isRestaurant, upload.single('image'), dishController.updateDish);
 router.delete('/restaurants/:restaurantId/dishes/:dishId', isAuthenticated, isRestaurant, dishController.deleteDish);
 
 module.exports = router;

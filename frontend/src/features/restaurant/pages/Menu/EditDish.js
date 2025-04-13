@@ -10,50 +10,54 @@ import {
 const EditDish = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { restaurantId, dishId } = useParams();
+  const { dishId } = useParams();
   
-  const { 
-    dishLoading, 
-    success, 
-    currentDish,
-    menu 
-  } = useSelector((state) => state.restaurants);
+  const { profile, dishLoading, currentDish } = useSelector((state) => state.restaurants);
   
   const [formData, setFormData] = useState({
     name: '',
     ingredients: '',
     price: '',
     description: '',
-    image: '',
+    image: null,
     category: 'Main Course'
   });
 
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [originalData, setOriginalData] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
-  const { name, ingredients, price, description, image, category } = formData;
-
+  const { name, ingredients, price, description, category } = formData;
+  console.log(dishId, profile);
   // Load dish data when component mounts
   useEffect(() => {
-    if (dishId && restaurantId) {
-      dispatch(fetchDishDetails({ restaurantId, dishId }));
+    if (dishId && profile) {
+      dispatch(fetchDishDetails({ profile, dishId }));
     }
-  }, [dishId, restaurantId, dispatch]);
+  }, [dishId, profile, dispatch]);
 
   // Set form data when currentDish is loaded
   useEffect(() => {
-    if (dishId) {
+    if (currentDish) {
       setFormData({
-        name: dishId.name,
-        ingredients: dishId.ingredients || '',
-        price: dishId.price,
-        description: dishId.description || '',
-        image: dishId.image || '',
-        category: dishId.category
+        name: currentDish.name,
+        ingredients: Array.isArray(currentDish.ingredients) 
+          ? currentDish.ingredients.join(', ') 
+          : currentDish.ingredients || '',
+        price: currentDish.price,
+        description: currentDish.description || '',
+        image: currentDish.image || null,
+        category: currentDish.category || 'Main Course'
       });
-      setOriginalData(dishId);
+      
+      // Set preview image if it exists
+      if (currentDish.image) {
+        setPreviewImage(
+          currentDish.image.startsWith('http') 
+            ? currentDish.image 
+            : `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000'}${currentDish.image}`
+        );
+      }
     }
-  }, [currentDish, dishId]);
+  }, [currentDish]);
 
   const onChange = (e) => {
     setFormData({
@@ -62,29 +66,49 @@ const EditDish = () => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setShowConfirmation(true);
+  const onImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        image: file
+      });
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const confirmUpdate = () => {
-    const dishData = {
-      ...formData,
-      price: parseFloat(price)
-    };
+  const onSubmit = (e) => {
+    e.preventDefault();
     
-    dispatch(updateDish({ restaurantId, dishId, dishData }))
+    // Create FormData object for file upload
+    const dishFormData = new FormData();
+    dishFormData.append('name', name);
+    dishFormData.append('ingredients', ingredients);
+    dishFormData.append('price', parseFloat(price));
+    dishFormData.append('description', description);
+    dishFormData.append('category', category);
+    if (formData.image && typeof formData.image !== 'string') {
+      dishFormData.append('image', formData.image);
+    }
+    
+    dispatch(updateDish({ 
+      dishData: dishFormData, 
+      profile, 
+      dishId 
+    }))
       .unwrap()
       .then(() => {
         navigate(`/restaurant/menu`);
       })
       .catch((error) => {
-        setShowConfirmation(false);
+        // Error handling is done in the reducer
       });
-  };
-
-  const cancelUpdate = () => {
-    setShowConfirmation(false);
   };
 
   // Reset dish state when component unmounts
@@ -94,36 +118,7 @@ const EditDish = () => {
     };
   }, [dispatch]);
 
-  // Calculate changes
-  const getChanges = () => {
-    if (!originalData) return [];
-    
-    const changes = [];
-    const fields = ['name', 'ingredients', 'price', 'description', 'image', 'category'];
-    
-    fields.forEach(field => {
-      const originalValue = originalData[field] || '';
-      const newValue = formData[field];
-      
-      if (originalValue !== newValue) {
-        changes.push({
-          field,
-          original: originalValue,
-          new: newValue
-        });
-      }
-    });
-    
-    return changes;
-  };
-
-  const changes = getChanges();
-//   console.log('Current Dish:', currentDish);
-//   console.log('Current Dish id:', currentDish?._id);
-//   console.log('Dish Id:', dishId);
-  console.log('Original Data:', originalData);
-
-  if (!dishId) {
+  if (!currentDish) {
     return (
       <div className="container py-5">
         <div className="row justify-content-center">
@@ -158,140 +153,98 @@ const EditDish = () => {
               >
                 <i className="bi bi-arrow-left"></i> Back
               </button>
-              
-              {showConfirmation ? (
-                <div className="confirmation-modal">
-                  <h4 className="mb-4">Confirm Changes</h4>
-                  {changes.length > 0 ? (
-                    <>
-                      <div className="mb-4">
-                        <h5>Changes to be made:</h5>
-                        <ul className="list-group">
-                          {changes.map((change, index) => (
-                            <li key={index} className="list-group-item">
-                              <strong>{change.field}:</strong><br />
-                              <span className="text-danger text-decoration-line-through">
-                                {change.original}
-                              </span>
-                              {' → '}
-                              <span className="text-success">
-                                {change.new}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="d-flex justify-content-between">
-                        <button
-                          onClick={cancelUpdate}
-                          className="btn btn-outline-secondary"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={confirmUpdate}
-                          className="btn btn-primary"
-                          disabled={dishLoading}
-                        >
-                          {dishLoading ? 'Updating...' : 'Confirm Changes'}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="alert alert-info">
-                      No changes detected.
-                      <button
-                        onClick={cancelUpdate}
-                        className="btn btn-sm btn-outline-info ms-3"
-                      >
-                        Back to editing
-                      </button>
+              <form onSubmit={onSubmit} encType="multipart/form-data">
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    placeholder="Dish Name"
+                    name="name"
+                    value={name}
+                    onChange={onChange}
+                    required
+                    className="form-control form-control-lg"
+                  />
+                </div>
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    placeholder="Ingredients (comma separated)"
+                    name="ingredients"
+                    value={ingredients}
+                    onChange={onChange}
+                    className="form-control form-control-lg"
+                  />
+                </div>
+                <div className="mb-3">
+                  <input
+                    type="number"
+                    placeholder="Price"
+                    name="price"
+                    value={price}
+                    onChange={onChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    className="form-control form-control-lg"
+                  />
+                </div>
+                <div className="mb-3">
+                  <textarea
+                    placeholder="Description"
+                    name="description"
+                    value={description}
+                    onChange={onChange}
+                    className="form-control form-control-lg"
+                    rows="3"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="image-upload" className="form-label">Dish Image</label>
+                  <input
+                    type="file"
+                    id="image-upload"
+                    name="image"
+                    accept="image/*"
+                    onChange={onImageChange}
+                    className="form-control form-control-lg"
+                  />
+                  {previewImage && (
+                    <div className="mt-2">
+                      <img 
+                        src={previewImage} 
+                        alt="Preview" 
+                        className="img-thumbnail" 
+                        style={{ maxHeight: '200px' }}
+                      />
+                      <p className="text-muted mt-1">Current image preview</p>
                     </div>
                   )}
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <label className="form-label">Dish Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={name}
-                      onChange={onChange}
-                      required
-                      className="form-control form-control-lg"
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Ingredients</label>
-                    <input
-                      type="text"
-                      placeholder="Comma separated ingredients"
-                      name="ingredients"
-                      value={ingredients}
-                      onChange={onChange}
-                      className="form-control form-control-lg"
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Price</label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={price}
-                      onChange={onChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      className="form-control form-control-lg"
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Description</label>
-                    <textarea
-                      name="description"
-                      value={description}
-                      onChange={onChange}
-                      className="form-control form-control-lg"
-                      rows="3"
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Image URL</label>
-                    <input
-                      type="text"
-                      name="image"
-                      value={image}
-                      onChange={onChange}
-                      className="form-control form-control-lg"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="form-label">Category</label>
-                    <select
-                      name="category"
-                      value={category}
-                      onChange={onChange}
-                      className="form-select form-select-lg"
-                      required
-                    >
-                      <option value="Appetizer">Appetizer</option>
-                      <option value="Main Course">Main Course</option>
-                      <option value="Dessert">Dessert</option>
-                      <option value="Drink">Drink</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div className="d-grid">
-                    <button
-                      type="submit"
-                      className="btn btn-primary btn-lg"
-                    >
-                      Review Changes
-                    </button>
-                  </div>
-                </form>
-              )}
+                <div className="mb-4">
+                  <select
+                    name="category"
+                    value={category}
+                    onChange={onChange}
+                    className="form-select form-select-lg"
+                    required
+                  >
+                    <option value="Appetizer">Appetizer</option>
+                    <option value="Main Course">Main Course</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Drink">Drink</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="d-grid">
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-lg"
+                    disabled={dishLoading}
+                  >
+                    {dishLoading ? 'Updating...' : 'Update Dish'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

@@ -71,33 +71,46 @@ exports.addDish = async (req, res) => {
 };
 
 // Update dish details
+// Update dish details (with image upload support)
 exports.updateDish = async (req, res) => {
   try {
     const { restaurantId, dishId } = req.params;
-    const { name, ingredients, price, description, image, category } = req.body;
+    const { name, ingredients, price, description, category } = req.body;
 
-    const dish = await Dish.findOneAndUpdate(
-      { _id: dishId, restaurant: restaurantId },
-      {
-        name,
-        ingredients,
-        price,
-        description,
-        image,
-        category,
-        updatedAt: new Date()
-      },
-      { new: true }
-    );
-
-    if (!dish) {
+    // Find the existing dish first
+    const existingDish = await Dish.findOne({ _id: dishId, restaurant: restaurantId });
+    
+    if (!existingDish) {
       return res.status(404).json({ message: 'Dish not found' });
     }
 
-    res.status(200).json({ message: 'Dish updated successfully' });
+    // Process the image - use new file if uploaded, otherwise keep existing
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : existingDish.image;
+
+    const updatedDish = await Dish.findOneAndUpdate(
+      { _id: dishId, restaurant: restaurantId },
+      {
+        name,
+        ingredients: ingredients,
+        price: parseFloat(price),
+        description,
+        image: imagePath,
+        category,
+        updatedAt: new Date()
+      },
+      { new: true } // Return the updated document
+    );
+
+    res.status(200).json({
+      message: 'Dish updated successfully',
+      dish: updatedDish
+    });
   } catch (error) {
     console.error('Error updating dish:', error);
-    res.status(500).json({ message: 'Error updating dish', error: error.message });
+    res.status(500).json({ 
+      message: 'Error updating dish', 
+      error: error.message 
+    });
   }
 };
 
