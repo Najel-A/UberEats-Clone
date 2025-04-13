@@ -34,6 +34,7 @@ const RestaurantCard = ({ restaurant }) => {
       // Error is already handled in the slice, no need to show alert
     }
   };
+  
 
   return (
     <div className="restaurant-card" data-testid="restaurant-card">
@@ -44,7 +45,7 @@ const RestaurantCard = ({ restaurant }) => {
       >
         <div className="restaurant-image-container">
           <img
-            src={restaurant.image_url || '/images/restaurant-placeholder.jpg'}
+            src={`http://localhost:5000${restaurant.profilePicture}` || '/images/restaurant-placeholder.jpg'}
             alt={restaurant.name}
             className="restaurant-image"
             onError={(e) => {
@@ -57,7 +58,10 @@ const RestaurantCard = ({ restaurant }) => {
         <div className="restaurant-info">
           <div className="restaurant-header">
             <h3 className="restaurant-name">{restaurant.name}</h3>
-            <p className="restaurant-cuisine">{restaurant.cuisine}</p>
+            <p className="restaurant-description">{restaurant.description}</p>
+            <p className="restaurant-location">
+            {restaurant?.location?.address}, {restaurant?.location?.city}, {restaurant?.location?.state} {restaurant?.location?.postalCode}, {restaurant?.location?.country}
+          </p>
           </div>
 
           <div className="restaurant-footer">

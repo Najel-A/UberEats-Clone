@@ -10,6 +10,7 @@ import {
   Button,
   TextField,
   Divider,
+  Avatar,
 } from '@mui/material';
 import { Delete, Add, Remove, ShoppingCart } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +21,7 @@ const Cart = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, total } = useSelector(state => state.cart);
+  console.log('Cart items:', items);
 
   const handleQuantityChange = (dishId, newQuantity) => {
     const quantity = parseInt(newQuantity);
@@ -82,6 +84,12 @@ const Cart = ({ open, onClose }) => {
                       }
                     }}
                   >
+                    <Avatar
+                      src={`http://localhost:5000${item.image}`}
+                      alt={item.name}
+                      variant="rounded"
+                      sx={{ width: 60, height: 60, mr: 2 }}
+                    />
                     <ListItemText
                       primary={
                         <Typography fontWeight="medium">

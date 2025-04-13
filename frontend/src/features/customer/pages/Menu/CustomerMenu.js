@@ -13,7 +13,8 @@ import {
   Paper,
   Button,
   Badge,
-  IconButton
+  IconButton,
+  CardMedia
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { addItem } from '../../../../redux/slices/cartSlice';
@@ -103,6 +104,7 @@ const MenuPage = () => {
                 <ListItem 
                   key={item._id || item.id} 
                   divider
+                  sx={{ display: 'flex', gap: 2 }}
                   secondaryAction={
                     <Button
                       variant="contained"
@@ -114,6 +116,14 @@ const MenuPage = () => {
                     </Button>
                   }
                 >
+                  {item.image && (
+                    <CardMedia
+                      component="img"
+                      sx={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 1 }}
+                      image={`http://localhost:5000${item.image}`}
+                      alt={item.name}
+                    />
+                  )}
                   <ListItemText
                     primary={item.name}
                     secondary={
