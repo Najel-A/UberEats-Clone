@@ -97,6 +97,7 @@ const OrderCard = ({
   const calculateItemSubtotal = (item) => {
     return (item.quantity * item.priceAtTime).toFixed(2);
   };
+  console.log('Order Items:', order.items);
 
   // Generate action buttons based on order status and context
   const getStatusActions = () => {
@@ -180,7 +181,7 @@ const OrderCard = ({
           renderItem={(item) => (
             <List.Item>
               <List.Item.Meta
-                avatar={<Avatar src={item.dish?.image} shape="square" size={64} />}
+                avatar={<Avatar src={`http://localhost:5000${item.dish.image}`} shape="square" size={64} />}
                 title={
                   <Text strong style={{ fontSize: 16 }}>
                     {item.dish?.name || 'Unknown Dish'}
