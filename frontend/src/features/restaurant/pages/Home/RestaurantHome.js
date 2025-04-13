@@ -115,7 +115,6 @@ const RestaurantHome = () => {
       </div>
     );
   }
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider width={250} theme="light" breakpoint="lg" collapsedWidth="0">

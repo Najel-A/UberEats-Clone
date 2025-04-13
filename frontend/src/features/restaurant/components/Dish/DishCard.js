@@ -35,6 +35,8 @@ const DishCard = ({ dish }) => {
     dispatch(deleteDish({dishId: dish._id}));
     setDeleteConfirm(false);
   };
+  console.log('Dish Image:', dish.image);
+  
 
   return (
     <>
@@ -53,7 +55,7 @@ const DishCard = ({ dish }) => {
           <CardMedia
             component="img"
             height="180"
-            image={dish.image.startsWith('http') ? dish.image : `http://localhost:5000${dish.image}`}
+            image={`http://localhost:5000${dish.image}`}
             alt={dish.name}
             sx={{
               objectFit: 'cover',

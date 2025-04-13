@@ -28,6 +28,11 @@ exports.getDishDetails = async (req, res) => {
       restaurant: restaurantId
     });
 
+    if (dish.image) {
+      dish.image = `http://localhost:5000${dish.image}`;
+      console.log('Processed image path:', dish.image); // Debug log
+    }
+
     if (!dish) {
       return res.status(404).json({ message: 'Dish not found' });
     }
@@ -43,14 +48,17 @@ exports.getDishDetails = async (req, res) => {
 exports.addDish = async (req, res) => {
   try {
     const restaurantId = req.params.restaurantId;
-    const { name, ingredients, price, description, image, category } = req.body;
+    const { name, ingredients, price, description, category } = req.body;
+
+    // Get the uploaded file path (if available)
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newDish = await Dish.create({
       name,
-      ingredients,
-      price,
+      ingredients: ingredients, // Convert to array if needed
+      price: parseFloat(price), // Ensure price is a number
       description,
-      image,
+      image: imagePath, // Store the file path (or null if no file)
       category,
       restaurant: restaurantId,
     });

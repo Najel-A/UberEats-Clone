@@ -34,17 +34,31 @@ export const fetchRestaurantMenu = createAsyncThunk(
   'restaurants/fetchRestaurantMenu',
   async (restaurantId, { getState, rejectWithValue }) => {
     try {
-      const { id, token } = getState().auth;
-      console.log('Restaurant ID:', id); // Log the restaurantId
-      const response = await axios.get(
-        `http://localhost:5000/api/restaurants/${id}/dishes`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
+      const { id, token, role } = getState().auth;
+      console.log('Restaurant ID:', id);
+      let response;
+      
+      if (role === 'customer') {
+        response = await axios.get(
+          `http://localhost:5000/api/restaurants/${restaurantId}/dishes`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        }
-      );
-      return response.data; // This should be an array of dishes
+        );
+      } else if (role === 'restaurant') {
+        response = await axios.get(
+          `http://localhost:5000/api/restaurants/${id}/dishes`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+      }
+      
+      return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -132,20 +146,21 @@ export const fetchRestaurantProfile = createAsyncThunk(
   }
 );
 
-// Async thunk for creating a new dish
+// Async thunk for creating a new dish with file upload
 export const createDish = createAsyncThunk(
   'restaurants/createDish',
   async ({ dishData, restaurantId }, { getState, rejectWithValue }) => {
     try {
       const { token, id } = getState().auth;
       
+      // Note: dishData is now a FormData object when image is included
       const response = await axios.post(
-        `http://localhost:5000/api/restaurants/${id}/dishes`,
+        `http://localhost:5000/api/restaurants/${restaurantId || id}/dishes`,
         dishData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'multipart/form-data' // Important for file uploads
           }
         }
       );

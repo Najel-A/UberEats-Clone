@@ -19,7 +19,9 @@ const NewDish = () => {
     category: 'Main Course'
   });
 
-  const { name, ingredients, price, description, image, category } = formData;
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const { name, ingredients, price, description, category } = formData;
 
   const onChange = (e) => {
     setFormData({
@@ -28,16 +30,38 @@ const NewDish = () => {
     });
   };
 
+  const onImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        image: file
+      });
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = (e) => {
     e.preventDefault();
     
-    // Convert price to number
-    const dishData = {
-      ...formData,
-      price: parseFloat(price)
-    };
+    // Create FormData object for file upload
+    const dishFormData = new FormData();
+    dishFormData.append('name', name);
+    dishFormData.append('ingredients', ingredients);
+    dishFormData.append('price', parseFloat(price));
+    dishFormData.append('description', description);
+    dishFormData.append('category', category);
+    if (formData.image) {
+      dishFormData.append('image', formData.image);
+    }
     
-    dispatch(createDish({ dishData, restaurantId }))
+    dispatch(createDish({ dishData: dishFormData, restaurantId }))
       .unwrap()
       .then(() => {
         navigate(`/restaurant/menu`);
@@ -67,7 +91,7 @@ const NewDish = () => {
               >
                 <i className="bi bi-arrow-left"></i> Back
               </button>
-              <form onSubmit={onSubmit}>
+              <form onSubmit={onSubmit} encType="multipart/form-data">
                 <div className="mb-3">
                   <input
                     type="text"
@@ -113,14 +137,25 @@ const NewDish = () => {
                   />
                 </div>
                 <div className="mb-3">
+                  <label htmlFor="image-upload" className="form-label">Dish Image</label>
                   <input
-                    type="text"
-                    placeholder="Image URL"
+                    type="file"
+                    id="image-upload"
                     name="image"
-                    value={image}
-                    onChange={onChange}
+                    accept="image/*"
+                    onChange={onImageChange}
                     className="form-control form-control-lg"
                   />
+                  {previewImage && (
+                    <div className="mt-2">
+                      <img 
+                        src={previewImage} 
+                        alt="Preview" 
+                        className="img-thumbnail" 
+                        style={{ maxHeight: '200px' }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="mb-4">
                   <select
