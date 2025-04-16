@@ -72,6 +72,7 @@ const CustomerFavoritesPage = () => {
     );
   }
 
+  console.log('Favorites:', favorites);
   return (
     <div className="container py-5">
       <header className="text-center mb-5">
@@ -88,11 +89,12 @@ const CustomerFavoritesPage = () => {
             <RestaurantCard
               restaurant={{
                 _id: favorite.restaurant_id,
-                name: favorite.restaurant_name,
-                image_url: favorite.restaurant_image,
-                cuisine: favorite.cuisine_type,
-                rating: favorite.average_rating,
-                price_level: favorite.price_level
+                name: favorite.restaurant.name,
+                description: favorite.restaurant.description,
+                location: favorite.restaurant.location,
+                profilePicture: favorite.restaurant.profilePicture,
+                contact_info: favorite.restaurant.contact_info,
+                openingHours: favorite.restaurant.openingHours,
               }}
             />
           </div>

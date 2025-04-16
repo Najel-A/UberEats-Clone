@@ -128,11 +128,17 @@ const MenuPage = () => {
                     primary={item.name}
                     secondary={
                       <>
+                        <Typography component="span" variant="body2" display="block">
+                            {item.category}
+                        </Typography>
                         {item.description && (
                           <Typography component="span" variant="body2" display="block">
                             {item.description}
                           </Typography>
                         )}
+                        <Typography component="span" variant="body2" display="block">
+                            {item.ingredients}
+                          </Typography>
                         <Typography component="span" variant="body2" display="block">
                           Price: ${item.price?.toFixed(2) || 'N/A'}
                         </Typography>

@@ -86,6 +86,21 @@ const base64ToFile = (base64, filename) => {
   return new File([u8arr], filename, { type: mime });
 };
 
+// export const fetchFavorites = createAsyncThunk(
+//   'customer/fetchFavorites',
+//   async (_, { getState, rejectWithValue }) => {
+//     try {
+//       const { token } = getState().auth;
+//       const response = await axios.get('http://localhost:5000/api/customers/favorites', {
+//         headers: { Authorization: `Bearer ${token}` },
+//         withCredentials: true
+//       });
+//       return response.data || []; // Ensure array return
+//     } catch (err) {
+//       return rejectWithValue(err.response?.data?.message || err.message);
+//     }
+//   }
+// );
 export const fetchFavorites = createAsyncThunk(
   'customer/fetchFavorites',
   async (_, { getState, rejectWithValue }) => {
@@ -95,13 +110,13 @@ export const fetchFavorites = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
       });
-      return response.data || []; // Ensure array return
+      console.log("Favorites response:", response.data); // Debug log
+      return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
-
 export const addFavorite = createAsyncThunk(
   'customer/addFavorite',
   async (restaurantId, { getState, dispatch, rejectWithValue }) => {
@@ -200,12 +215,20 @@ const customerSlice = createSlice({
         state.loadingStates.fetchFavorites = false;
         state.favorites = (action.payload || []).map(fav => ({
           _id: fav._id,
-          restaurant_id: fav.restaurant_id?._id || fav.restaurant_id,
-          restaurant_name: fav.restaurant_id?.name,
-          restaurant_image: fav.restaurant_id?.image_url,
-          cuisine_type: fav.restaurant_id?.cuisine,
-          average_rating: fav.restaurant_id?.rating,
-          price_level: fav.restaurant_id?.price_level
+          customer_id: fav.customer_id,
+          restaurant_id: fav.restaurant_id._id, // Keep the reference ID
+          restaurant: { // Store the full restaurant object
+            _id: fav.restaurant_id._id,
+            name: fav.restaurant_id.name,
+            description: fav.restaurant_id.description,
+            profilePicture: fav.restaurant_id.profilePicture,
+            location: fav.restaurant_id.location,
+            contact_info: fav.restaurant_id.contact_info,
+            openingHours: fav.restaurant_id.openingHours,
+            // Add any other fields you need from the restaurant model
+            rating: fav.restaurant_id.rating || 0, // Default value if needed
+            price_level: fav.restaurant_id.price_level || 1 // Default value if needed
+          }
         }));
       })
       .addCase(fetchFavorites.rejected, (state, action) => {

@@ -74,16 +74,29 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Get the user's favorite restaurants
+// exports.getFavorites = async (req, res) => {
+//   try {
+//     const userId = req.user.id; // user is set by authenticateJWT middleware
+
+//     const favorites = await Favorite.find({ customer_id: userId }).populate('restaurant_id');
+    
+//     res.status(200).json(favorites || []);
+//   } catch (error) {
+//     console.error('Error retrieving favorites:', error);
+//     res.status(500).json({ message: 'Error retrieving favorites', error: error.message });
+//   }
+// };
 exports.getFavorites = async (req, res) => {
   try {
-    const userId = req.user.id; // user is set by authenticateJWT middleware
-
-    const favorites = await Favorite.find({ customer_id: userId }).populate('restaurant_id');
+    const favorites = await Favorite.find({ customer_id: req.user.id })
+      .populate({
+        path: 'restaurant_id',
+        select: 'name description location profilePicture openingHours contact_info' // Include all needed fields
+      });
     
-    res.status(200).json(favorites || []);
+    res.json(favorites);
   } catch (error) {
-    console.error('Error retrieving favorites:', error);
-    res.status(500).json({ message: 'Error retrieving favorites', error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
