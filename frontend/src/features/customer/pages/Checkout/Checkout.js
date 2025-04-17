@@ -16,7 +16,9 @@ import {
   TextField,
   Grid,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Avatar,
+  ListItemAvatar
 } from '@mui/material';
 import { ArrowBack, CreditCard, LocalShipping } from '@mui/icons-material';
 
@@ -25,17 +27,19 @@ const CheckoutPage = () => {
   const dispatch = useDispatch();
   
   // Redux state
-  const { items, total, restaurantId } = useSelector(state => state.cart);
-  const { profile, user, id } = useSelector(state => state.auth);
+  const { items, restaurantId, loading: cartLoading } = useSelector(state => state.cart);
+  const { profile, user, id, token } = useSelector(state => state.auth);
   const { status: orderStatus, error: orderError, currentOrder } = useSelector(state => state.order);
-//   console.log('Restaurant ID:', restaurantId);
-//   console.log('User:', user?.id);
-//   console.log('Profile:', id);
+
+  // Calculate total based on items
+  const total = items.reduce((sum, item) => {
+    return sum + (item.dish.price * item.quantity);
+  }, 0);
 
   // Form state
   const [formData, setFormData] = useState({
-    address: '',
-    phone: '',
+    address: profile?.address || '',
+    phone: profile?.phone || '',
     paymentMethod: 'credit',
     specialInstructions: ''
   });
@@ -43,14 +47,19 @@ const CheckoutPage = () => {
   // Reset order state on component mount
   useEffect(() => {
     dispatch(resetOrderState());
-  }, [dispatch]);
+    
+    // If cart is empty, redirect back
+    if (items.length === 0 && !cartLoading) {
+      navigate('/cart');
+    }
+  }, [dispatch, items.length, cartLoading, navigate]);
 
   // Handle successful order submission
   useEffect(() => {
     if (orderStatus === 'succeeded' && currentOrder) {
       dispatch(clearCart());
       const timer = setTimeout(() => {
-        navigate(`/order-confirmation`);
+        navigate(`/order-confirmation/${currentOrder._id}`);
       }, 1500);
       
       return () => clearTimeout(timer);
@@ -61,37 +70,52 @@ const CheckoutPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!items.length || !restaurantId) return;
-
-    const orderData = {
-        items: items.map(item => ({
-          dish: item.dishId,
-          quantity: item.quantity,
-          priceAtTime: item.price
-        })),
-        customer_id: id,
-        restaurant_id: restaurantId,
-        total_price: total,
-        // deliveryAddress: formData.address,
-        // phoneNumber: formData.phone,
-        // paymentMethod: formData.paymentMethod,
-        // specialInstructions: formData.specialInstructions
-      };
-      console.log(orderData);
-      dispatch(submitOrder(orderData));
-  };
+    //setLocalError(null);
   
+    //if (!validateOrder()) return;
+  
+    try {
+      // Prepare order items exactly as backend expects
+      const orderItems = items.map(item => ({
+        dish: item.dish._id,  // Just the ID string - backend will convert to ObjectId
+        quantity: item.quantity,
+        priceAtTime: item.dish.price // Using current price from dish
+      }));
+  
+      // Structure matches your backend's expected request body
+      const orderData = {
+        items: orderItems,
+        customer_id: user,    // As string - backend will convert
+        restaurant_id: restaurantId, // As string - backend will convert
+        total_price: total,
+        // These will be added to order but not shown in your controller
+        delivery_address: formData.address,
+        phone_number: formData.phone,
+        payment_method: formData.paymentMethod,
+        special_instructions: formData.specialInstructions
+      };
+  
+      console.log('Submitting order:', JSON.stringify(orderData, null, 2));
+  
+      dispatch(submitOrder({ 
+        orderData, // This exact structure matches your backend
+        token 
+      }));
+    } catch (error) {
+      console.error('Order submission error:', error);
+      //setLocalError('Failed to process order. Please try again.');
+    }
+  };
 
   // Loading state
-  if (orderStatus === 'loading') {
+  if (orderStatus === 'loading' || cartLoading) {
     return (
       <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
         <CircularProgress size={60} />
         <Typography variant="h6" sx={{ mt: 2 }}>
-          Processing your order...
+          {cartLoading ? 'Loading your cart...' : 'Processing your order...'}
         </Typography>
       </Container>
     );
@@ -138,15 +162,37 @@ const CheckoutPage = () => {
             </Typography>
             
             <List>
-              {items.map((item, index) => (
-                <React.Fragment key={`${item.dishId}-${index}`}>
+              {items.map((item) => (
+                <React.Fragment key={item.dish._id}>
                   <ListItem>
+                    <ListItemAvatar>
+                      <Avatar 
+                        src={`http://localhost:5000${item.dish.profilePicture}`}
+                        alt={item.dish.name}
+                        variant="rounded"
+                        sx={{ width: 56, height: 56, mr: 2 }}
+                      />
+                    </ListItemAvatar>
                     <ListItemText
-                      primary={`${item.name} (x${item.quantity})`}
-                      secondary={`${(item.price * item.quantity).toFixed(2)}`}
+                      primary={`${item.dish.name} (x${item.quantity})`}
+                      secondary={
+                        <>
+                          <Typography component="span" variant="body2">
+                            ${item.dish.price.toFixed(2)} each
+                          </Typography>
+                          {item.special_instructions && (
+                            <Typography component="div" variant="caption" color="text.secondary">
+                              Note: {item.special_instructions}
+                            </Typography>
+                          )}
+                        </>
+                      }
                     />
+                    <Typography variant="body1">
+                      ${(item.dish.price * item.quantity).toFixed(2)}
+                    </Typography>
                   </ListItem>
-                  {index < items.length - 1 && <Divider />}
+                  <Divider />
                 </React.Fragment>
               ))}
             </List>
@@ -189,6 +235,7 @@ const CheckoutPage = () => {
                 required
                 multiline
                 rows={3}
+                helperText="Please enter your complete delivery address"
               />
 
               <TextField

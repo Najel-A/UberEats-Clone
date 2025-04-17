@@ -199,7 +199,7 @@ import { clearCart } from './cartSlice';
 // Customer Order Thunks
 export const submitOrder = createAsyncThunk(
   'order/submitOrder',
-  async (orderData, { getState, dispatch }) => {
+  async (orderData, { getState }) => {
     try {
       const { token } = getState().auth;
       const response = await axios.post('http://localhost:5000/api/orders', orderData, {
@@ -210,7 +210,6 @@ export const submitOrder = createAsyncThunk(
         withCredentials: true
       });
       
-      dispatch(clearCart());
       return response.data;
     } catch (error) {
       throw error.response?.data?.message || error.message;

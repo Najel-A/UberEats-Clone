@@ -17,7 +17,7 @@ import {
   CardMedia
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { addItem } from '../../../../redux/slices/cartSlice';
+import { addToCart } from '../../../../redux/slices/cartSlice';
 import Cart from '../../components/Cart/Cart';
 import { AddShoppingCart, Add } from '@mui/icons-material';
 
@@ -42,7 +42,7 @@ const MenuPage = () => {
   };
 
   const handleAddToCart = (menuItem) => {
-    dispatch(addItem({
+    dispatch(addToCart({
       dishId: menuItem._id || menuItem.id,
       name: menuItem.name,
       price: menuItem.price,

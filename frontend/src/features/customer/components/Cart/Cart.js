@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   Drawer, 
   Box, 
@@ -11,28 +11,79 @@ import {
   TextField,
   Divider,
   Avatar,
+  CircularProgress,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { Delete, Add, Remove, ShoppingCart } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { removeItem, updateQuantity, clearCart } from '../../../../redux/slices/cartSlice';
+import { 
+  fetchCart,
+  addToCart, 
+  updateCartItem, 
+  removeFromCart, 
+  clearCart,
+  resetCartError
+} from '../../../../redux/slices/cartSlice';
 
 const Cart = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, total } = useSelector(state => state.cart);
-  console.log('Cart items:', items);
+  const { 
+    items, 
+    restaurantId, 
+    loading, 
+    error 
+  } = useSelector(state => state.cart);
+  const { token } = useSelector(state => state.auth);
 
-  const handleQuantityChange = (dishId, newQuantity) => {
+  // Calculate total based on items
+  const total = items.reduce((sum, item) => {
+    return sum + (item.dish.price * item.quantity);
+  }, 0);
+
+  // Fetch cart when drawer opens
+  useEffect(() => {
+    if (open && token) {
+      dispatch(fetchCart());
+    }
+  }, [open, token, dispatch]);
+
+  const handleQuantityChange = async (dishId, newQuantity) => {
     const quantity = parseInt(newQuantity);
     if (!isNaN(quantity) && quantity > 0) {
-      dispatch(updateQuantity({ dishId, quantity }));
+      try {
+        await dispatch(updateCartItem({ dishId, quantity })).unwrap();
+      } catch (error) {
+        console.error('Failed to update quantity:', error);
+      }
     }
   };
 
   const handleCheckout = () => {
     onClose();
     navigate('/checkout');
+  };
+
+  const handleClearCart = async () => {
+    try {
+      await dispatch(clearCart()).unwrap();
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+    }
+  };
+
+  const handleRemoveItem = async (dishId) => {
+    try {
+      await dispatch(removeFromCart(dishId)).unwrap();
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    }
+  };
+
+  const handleCloseError = () => {
+    dispatch(resetCartError());
   };
 
   return (
@@ -52,7 +103,28 @@ const Cart = ({ open, onClose }) => {
           </Typography>
         </Box>
         
-        {items.length === 0 ? (
+        {/* Error Notification */}
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={handleCloseError}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+
+        {loading ? (
+          <Box sx={{ 
+            flexGrow: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center'
+          }}>
+            <CircularProgress />
+          </Box>
+        ) : items.length === 0 ? (
           <Box sx={{ 
             flexGrow: 1, 
             display: 'flex', 
@@ -75,7 +147,7 @@ const Cart = ({ open, onClose }) => {
           <>
             <List sx={{ flexGrow: 1, overflow: 'auto' }}>
               {items.map((item) => (
-                <React.Fragment key={item.dishId}>
+                <React.Fragment key={item.dish._id}>
                   <ListItem 
                     sx={{ 
                       py: 2,
@@ -85,35 +157,43 @@ const Cart = ({ open, onClose }) => {
                     }}
                   >
                     <Avatar
-                      src={`http://localhost:5000${item.image}`}
-                      alt={item.name}
+                      src={`http://localhost:5000${item.dish.profilePicture}`}
+                      alt={item.dish.name}
                       variant="rounded"
                       sx={{ width: 60, height: 60, mr: 2 }}
                     />
                     <ListItemText
                       primary={
                         <Typography fontWeight="medium">
-                          {item.name}
+                          {item.dish.name}
                         </Typography>
                       }
                       secondary={
-                        <Typography variant="body2" color="text.secondary">
-                          ${item.price.toFixed(2)} each
-                        </Typography>
+                        <>
+                          <Typography variant="body2" color="text.secondary">
+                            ${item.dish.price} each
+                          </Typography>
+                          {item.special_instructions && (
+                            <Typography variant="caption" color="text.secondary">
+                              Note: {item.special_instructions}
+                            </Typography>
+                          )}
+                        </>
                       }
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <IconButton 
                         size="small" 
-                        onClick={() => handleQuantityChange(item.dishId, item.quantity - 1)}
+                        onClick={() => handleQuantityChange(item.dish._id, item.quantity - 1)}
                         aria-label="Decrease quantity"
+                        disabled={loading}
                       >
                         <Remove fontSize="small" />
                       </IconButton>
                       <TextField
                         size="small"
                         value={item.quantity}
-                        onChange={(e) => handleQuantityChange(item.dishId, e.target.value)}
+                        onChange={(e) => handleQuantityChange(item.dish._id, e.target.value)}
                         sx={{ 
                           width: 60, 
                           mx: 1,
@@ -127,19 +207,22 @@ const Cart = ({ open, onClose }) => {
                           min: 1,
                           type: 'number'
                         }}
+                        disabled={loading}
                       />
                       <IconButton 
                         size="small" 
-                        onClick={() => handleQuantityChange(item.dishId, item.quantity + 1)}
+                        onClick={() => handleQuantityChange(item.dish._id, item.quantity + 1)}
                         aria-label="Increase quantity"
+                        disabled={loading}
                       >
                         <Add fontSize="small" />
                       </IconButton>
                       <IconButton 
-                        onClick={() => dispatch(removeItem(item.dishId))}
+                        onClick={() => handleRemoveItem(item.dish._id)}
                         color="error"
                         aria-label="Remove item"
                         sx={{ ml: 1 }}
+                        disabled={loading}
                       >
                         <Delete />
                       </IconButton>
@@ -165,8 +248,9 @@ const Cart = ({ open, onClose }) => {
                   fullWidth
                   variant="outlined" 
                   color="error" 
-                  onClick={() => dispatch(clearCart())}
+                  onClick={handleClearCart}
                   startIcon={<Delete />}
+                  disabled={loading || items.length === 0}
                 >
                   Clear All
                 </Button>
@@ -175,7 +259,7 @@ const Cart = ({ open, onClose }) => {
                   variant="contained" 
                   color="primary"
                   onClick={handleCheckout}
-                  disabled={items.length === 0}
+                  disabled={loading || items.length === 0}
                 >
                   Checkout
                 </Button>

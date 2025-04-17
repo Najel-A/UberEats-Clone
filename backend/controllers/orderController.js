@@ -8,6 +8,8 @@ const Restaurant = require('../models/Restaurant');
 exports.createOrder = async (req, res) => {
     try {
         const { items, customer_id, restaurant_id, total_price } = req.body;
+        console.log('Request body:', req.body);
+        console.log(items);
         
         const isObjectId = (id) => id instanceof mongoose.Types.ObjectId;
 
@@ -46,7 +48,7 @@ exports.getCustomerOrders = async (req, res) => {
                 path: 'items.dish',
                 select: 'name image'
             })
-            .sort({ createdAt: -1 });
+            .sort({ created_at: -1 });
         
         res.status(200).json(orders);
     } catch (error) {
