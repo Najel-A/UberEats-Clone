@@ -75,7 +75,7 @@ exports.getRestaurantOrders = async (req, res) => {
                 path: 'items.dish',
                 select: 'name image'
             })
-            .sort({ createdAt: -1 });
+            .sort({ created_at: -1 });
         
 
         res.status(200).json(orders);

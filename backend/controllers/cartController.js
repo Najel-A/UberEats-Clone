@@ -67,6 +67,7 @@ exports.addItemToCart = async (req, res) => {
 exports.updateCartItem = async (req, res) => {
   const { dishId } = req.params;
   const { quantity, special_instructions } = req.body;
+  console.log(req.body);
 
   try {
     const cart = await Cart.findOne({ customer_id: req.user.id });
@@ -79,6 +80,7 @@ exports.updateCartItem = async (req, res) => {
     item.special_instructions = special_instructions ?? item.special_instructions;
 
     await cart.save();
+    console.log(cart);
     res.status(200).json(cart);
   } catch (err) {
     res.status(500).json({ message: 'Error updating item', error: err.message });

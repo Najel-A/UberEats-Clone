@@ -144,9 +144,7 @@ const RestaurantHome = () => {
           <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between' }}>
             <Title level={4} style={{ margin: 16 }}>Restaurant Dashboard</Title>
             <Space style={{ margin: 16 }}>
-              <Button type="primary" onClick={() => navigate('/restaurant/menu/add')}>
-                Add New Dish
-              </Button>
+              
             </Space>
           </div>
         </Header>

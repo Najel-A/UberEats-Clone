@@ -55,6 +55,7 @@ const Cart = ({ open, onClose }) => {
     if (!isNaN(quantity) && quantity > 0) {
       try {
         await dispatch(updateCartItem({ dishId, quantity })).unwrap();
+        await dispatch(fetchCart());
       } catch (error) {
         console.error('Failed to update quantity:', error);
       }
@@ -77,6 +78,7 @@ const Cart = ({ open, onClose }) => {
   const handleRemoveItem = async (dishId) => {
     try {
       await dispatch(removeFromCart(dishId)).unwrap();
+      await dispatch(fetchCart());
     } catch (error) {
       console.error('Failed to remove item:', error);
     }
@@ -147,17 +149,12 @@ const Cart = ({ open, onClose }) => {
           <>
             <List sx={{ flexGrow: 1, overflow: 'auto' }}>
               {items.map((item) => (
-                <React.Fragment key={item.dish._id}>
-                  <ListItem 
-                    sx={{ 
-                      py: 2,
-                      '&:hover': { 
-                        backgroundColor: 'action.hover' 
-                      }
-                    }}
-                  >
+                <ListItem 
+                  key={item.dish._id}
+                  sx={{ py: 2 }}
+                >
                     <Avatar
-                      src={`http://localhost:5000${item.dish.profilePicture}`}
+                      src={`http://localhost:5000${item.dish.image}`}
                       alt={item.dish.name}
                       variant="rounded"
                       sx={{ width: 60, height: 60, mr: 2 }}
@@ -228,11 +225,8 @@ const Cart = ({ open, onClose }) => {
                       </IconButton>
                     </Box>
                   </ListItem>
-                  <Divider />
-                </React.Fragment>
               ))}
-            </List>
-            
+            </List>            
             <Box sx={{ mt: 'auto', pt: 2 }}>
               <Box sx={{ 
                 display: 'flex', 
