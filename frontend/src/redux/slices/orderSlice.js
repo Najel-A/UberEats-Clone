@@ -202,7 +202,7 @@ export const submitOrder = createAsyncThunk(
   async (orderData, { getState }) => {
     try {
       const { token } = getState().auth;
-      const response = await axios.post('http://localhost:5000/api/orders', orderData, {
+      const response = await axios.post('http://localhost:5000/api/orders', JSON.stringify(orderData), {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'

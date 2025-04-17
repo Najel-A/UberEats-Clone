@@ -50,7 +50,7 @@ const CheckoutPage = () => {
     
     // If cart is empty, redirect back
     if (items.length === 0 && !cartLoading) {
-      navigate('/cart');
+      navigate('/order-confirmation');
     }
   }, [dispatch, items.length, cartLoading, navigate]);
 
@@ -83,20 +83,20 @@ const CheckoutPage = () => {
         quantity: item.quantity,
         priceAtTime: item.dish.price // Using current price from dish
       }));
-  
+      console.log('OrderItems:', orderItems)
       // Structure matches your backend's expected request body
       const orderData = {
         items: orderItems,
-        customer_id: user,    // As string - backend will convert
+        customer_id: id,    // As string - backend will convert
         restaurant_id: restaurantId, // As string - backend will convert
         total_price: total,
         // These will be added to order but not shown in your controller
-        delivery_address: formData.address,
-        phone_number: formData.phone,
-        payment_method: formData.paymentMethod,
-        special_instructions: formData.specialInstructions
+        // delivery_address: formData.address,
+        // phone_number: formData.phone,
+        // payment_method: formData.paymentMethod,
+        // special_instructions: formData.specialInstructions
       };
-  
+      console.log('Order Data:', orderData);
       console.log('Submitting order:', JSON.stringify(orderData, null, 2));
   
       dispatch(submitOrder({ 

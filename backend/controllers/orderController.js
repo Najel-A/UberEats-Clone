@@ -7,10 +7,7 @@ const Restaurant = require('../models/Restaurant');
 // Create order directly from items
 exports.createOrder = async (req, res) => {
     try {
-        const { items, customer_id, restaurant_id, total_price } = req.body;
-        console.log('Request body:', req.body);
-        console.log(items);
-        
+        const { orderData: { items }, orderData: {customer_id}, orderData: {restaurant_id}, orderData: {total_price} } = req.body;
         const isObjectId = (id) => id instanceof mongoose.Types.ObjectId;
 
         const order = new Order({
