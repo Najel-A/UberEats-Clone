@@ -5,6 +5,15 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  email: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      },
+      message: props => `${props.value} is not a valid email!`
+    }
+  },
   role: { 
     type: String,
     default: "restaurant"
