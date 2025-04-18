@@ -1,48 +1,40 @@
 version: '3.8'
-services:
-  mongodb-user:
-    image: mongo:4.4
-    container_name: mongodb-user
-    ports:
-      - "27018:27017"
-    volumes:
-      - ./data/user-db:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: users
 
-  mongodb-restaurant:
-    image: mongo:4.4
-    container_name: mongodb-restaurant
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: lab2-zookeeper
     ports:
-      - "27019:27017"
-    volumes:
-      - ./data/restaurant-db:/data/db
+      - "2181:2181"
     environment:
-      MONGO_INITDB_DATABASE: restaurants
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
 
   kafka:
-    image: bitnami/kafka:latest
-    container_name: data236-lab2-orders
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    image: confluentinc/cp-kafka:latest
+    container_name: lab2-kafka
     ports:
-      - "9093:9093"
-      - "9094:9094"
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
 
-  zookeeper:
-    image: bitnami/zookeeper:latest
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+  users:
+    image: mongo:4.4
+    container_name: lab2-users
     ports:
-      - "2181:2181"
+      - "27018:27017" 
+    environment:
+      MONGO_INITDB_DATABASE: users_db
 
-volumes:
-  user-db:
-    driver: local
-  restaurant-db:
-    driver: local
+  restaurants:
+    image: mongo:4.4
+    container_name: lab2-restaurants
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: restaurants_db
