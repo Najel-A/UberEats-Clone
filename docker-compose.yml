@@ -1,47 +1,41 @@
+version: '3.8'
 services:
   mongodb-user:
-    image: mongo:4.4 # Need to specify version
-    container_name: data236-lab2-users
+    image: mongo:4.4
+    container_name: mongodb-user
     ports:
-      - "27018:27017" 
+      - "27018:27017"
     volumes:
-      - ./data/user-db:/data/db 
+      - ./data/user-db:/data/db
     environment:
-      MONGO_INITDB_DATABASE: users 
+      MONGO_INITDB_DATABASE: users
 
   mongodb-restaurant:
-    image: mongo:4.4 # Need to specify version
-    container_name: data236-lab2-restaurants
+    image: mongo:4.4
+    container_name: mongodb-restaurant
     ports:
       - "27019:27017"
     volumes:
-      - ./data/restaurant-db:/data/db 
+      - ./data/restaurant-db:/data/db
     environment:
       MONGO_INITDB_DATABASE: restaurants
 
   kafka:
-    image: ubuntu/kafka:latest
+    image: bitnami/kafka:latest
     container_name: data236-lab2-orders
     environment:
-      KAFKA_ADVERTISED_LISTENER: INSIDE-KAFKA:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
-      KAFKA_LISTENER_NAMES: INSIDE-KAFKA
-      KAFKA_LISTENER_PORT: 9093
-      KAFKA_LISTENER_INTERFACE: 0.0.0.0
-      KAFKA_LISTENER_INTERNAL: INSIDE-KAFKA
-      KAFKA_LISTENER_INTERNAL_PORT: 9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_NAME_INTERNAL: INSIDE-KAFKA
-      KAFKA_LISTENER_NAME_EXTERNAL: OUTSIDE-KAFKA
     ports:
-      - "9093:9093"   # External Kafka port
-      - "9094:9094"   # Internal Kafka port
+      - "9093:9093"
+      - "9094:9094"
     depends_on:
       - zookeeper
 
   zookeeper:
-    image: ubuntu/zookeeper:latest
-    container_name: data236-lab2-zookeeper
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
@@ -49,5 +43,6 @@ services:
 
 volumes:
   user-db:
+    driver: local
   restaurant-db:
-
+    driver: local

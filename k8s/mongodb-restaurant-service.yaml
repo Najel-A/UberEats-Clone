@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongodb-restaurant
+  name: mongodb-restaurant
+spec:
+  ports:
+    - name: "27019"
+      port: 27019
+      targetPort: 27017
+  selector:
+    io.kompose.service: mongodb-restaurant
+status:
+  loadBalancer: {}
