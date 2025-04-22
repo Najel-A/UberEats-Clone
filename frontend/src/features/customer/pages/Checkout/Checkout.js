@@ -4,23 +4,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../../../../redux/slices/cartSlice';
 import { submitOrder, resetOrderState } from '../../../../redux/slices/orderSlice';
 import {
-  Container,
-  Paper,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
   Button,
-  Box,
   TextField,
-  Grid,
   Alert,
   CircularProgress,
   Avatar,
-  ListItemAvatar
 } from '@mui/material';
 import { ArrowBack, CreditCard, LocalShipping } from '@mui/icons-material';
+import './Checkout.css';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -72,9 +64,6 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    //setLocalError(null);
-  
-    //if (!validateOrder()) return;
   
     try {
       // Prepare order items exactly as backend expects
@@ -105,208 +94,190 @@ const CheckoutPage = () => {
       }));
     } catch (error) {
       console.error('Order submission error:', error);
-      //setLocalError('Failed to process order. Please try again.');
     }
   };
 
   // Loading state
   if (orderStatus === 'loading' || cartLoading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ mt: 2 }}>
+      <div className="loading-container">
+        <CircularProgress className="loading-spinner" size={60} />
+        <Typography className="loading-text">
           {cartLoading ? 'Loading your cart...' : 'Processing your order...'}
         </Typography>
-      </Container>
+      </div>
     );
   }
 
   // Success state (before redirect)
   if (orderStatus === 'succeeded') {
     return (
-      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <Alert severity="success" sx={{ mb: 3 }}>
+      <div className="success-container">
+        <Alert severity="success" className="success-alert">
           Order placed successfully! Redirecting to confirmation page...
         </Alert>
-        <CircularProgress />
-      </Container>
+        <CircularProgress className="loading-spinner" />
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <div className="checkout-container">
       <Button
-        startIcon={<ArrowBack />}
+        className="back-button"
         onClick={() => navigate(-1)}
-        sx={{ mb: 2 }}
       >
-        Back to Cart
+        <ArrowBack /> Back to Cart
       </Button>
 
-      <Typography variant="h4" gutterBottom>
+      <Typography className="checkout-title">
         Checkout
       </Typography>
 
       {orderError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" className="error-alert">
           {orderError}
         </Alert>
       )}
 
-      <Grid container spacing={4}>
+      <div className="checkout-grid">
         {/* Order Summary */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Order Summary
-            </Typography>
-            
-            <List>
-              {items.map((item) => (
-                <React.Fragment key={item.dish._id}>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar 
-                        src={`http://localhost:5000${item.dish.profilePicture}`}
-                        alt={item.dish.name}
-                        variant="rounded"
-                        sx={{ width: 56, height: 56, mr: 2 }}
-                      />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={`${item.dish.name} (x${item.quantity})`}
-                      secondary={
-                        <>
-                          <Typography component="span" variant="body2">
-                            ${item.dish.price.toFixed(2)} each
-                          </Typography>
-                          {item.special_instructions && (
-                            <Typography component="div" variant="caption" color="text.secondary">
-                              Note: {item.special_instructions}
-                            </Typography>
-                          )}
-                        </>
-                      }
-                    />
-                    <Typography variant="body1">
-                      ${(item.dish.price * item.quantity).toFixed(2)}
+        <div className="order-summary-card">
+          <Typography className="card-title">
+            Order Summary
+          </Typography>
+          
+          <div className="order-items-list">
+            {items.map((item) => (
+              <div key={item.dish._id} className="order-item">
+                <Avatar 
+                  className="item-avatar"
+                  src={`http://localhost:5000${item.dish.profilePicture}`}
+                  alt={item.dish.name}
+                  variant="rounded"
+                />
+                <div className="item-content">
+                  <Typography className="item-name">
+                    {item.dish.name} (x{item.quantity})
+                  </Typography>
+                  <Typography className="item-price">
+                    ${item.dish.price.toFixed(2)} each
+                  </Typography>
+                  {item.special_instructions && (
+                    <Typography className="item-note">
+                      Note: {item.special_instructions}
                     </Typography>
-                  </ListItem>
-                  <Divider />
-                </React.Fragment>
-              ))}
-            </List>
+                  )}
+                </div>
+                <Typography className="item-total">
+                  ${(item.dish.price * item.quantity).toFixed(2)}
+                </Typography>
+              </div>
+            ))}
+          </div>
 
-            <Divider sx={{ my: 2 }} />
+          <hr className="order-divider" />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6">Total:</Typography>
-              <Typography variant="h6">${total.toFixed(2)}</Typography>
-            </Box>
-          </Paper>
-        </Grid>
+          <div className="total-container">
+            <Typography className="total-label">Total:</Typography>
+            <Typography className="total-amount">${total.toFixed(2)}</Typography>
+          </div>
+        </div>
 
         {/* Checkout Form */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Delivery Information
-            </Typography>
+        <div className="checkout-form-card">
+          <Typography className="card-title">
+            Delivery Information
+          </Typography>
 
-            <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="checkout-form">
+            <div className="form-field">
               <TextField
                 fullWidth
                 label="Full Name"
                 name="name"
                 value={user?.name || ''}
-                margin="normal"
                 InputProps={{
                   readOnly: true,
                 }}
               />
+            </div>
 
+            <div className="form-field">
               <TextField
                 fullWidth
                 label="Delivery Address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                margin="normal"
                 required
                 multiline
                 rows={3}
                 helperText="Please enter your complete delivery address"
               />
+            </div>
 
+            <div className="form-field">
               <TextField
                 fullWidth
                 label="Phone Number"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                margin="normal"
                 required
                 inputProps={{
                   pattern: "[0-9]{10}",
-                  title: "Please enter a 10-digit phone number"
                 }}
+                helperText="Please enter a valid 10-digit phone number"
               />
+            </div>
 
-              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+            <div className="form-field">
+              <Typography variant="subtitle1" gutterBottom>
                 Payment Method
               </Typography>
-
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <Button
-                  variant={formData.paymentMethod === 'credit' ? 'contained' : 'outlined'}
+              <div className="payment-methods">
+                <div 
+                  className={`payment-method ${formData.paymentMethod === 'credit' ? 'selected' : ''}`}
                   onClick={() => setFormData({...formData, paymentMethod: 'credit'})}
-                  startIcon={<CreditCard />}
                 >
-                  Credit Card
-                </Button>
-                <Button
-                  variant={formData.paymentMethod === 'cash' ? 'contained' : 'outlined'}
+                  <CreditCard className="payment-icon" />
+                  <Typography>Credit Card</Typography>
+                </div>
+                <div 
+                  className={`payment-method ${formData.paymentMethod === 'cash' ? 'selected' : ''}`}
                   onClick={() => setFormData({...formData, paymentMethod: 'cash'})}
-                  startIcon={<LocalShipping />}
                 >
-                  Cash on Delivery
-                </Button>
-              </Box>
+                  <LocalShipping className="payment-icon" />
+                  <Typography>Cash on Delivery</Typography>
+                </div>
+              </div>
+            </div>
 
+            <div className="form-field">
               <TextField
                 fullWidth
                 label="Special Instructions"
                 name="specialInstructions"
                 value={formData.specialInstructions}
                 onChange={handleChange}
-                margin="normal"
                 multiline
-                rows={2}
-                placeholder="e.g., Leave at front door, dietary restrictions, etc."
+                rows={3}
+                helperText="Any special instructions for your order (optional)"
               />
+            </div>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                sx={{ mt: 3 }}
-                disabled={items.length === 0 || orderStatus === 'loading'}
-              >
-                {orderStatus === 'loading' ? (
-                  <>
-                    <CircularProgress size={24} sx={{ mr: 2 }} />
-                    Processing...
-                  </>
-                ) : (
-                  'Place Order'
-                )}
-              </Button>
-            </form>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+            <Button
+              type="submit"
+              className="submit-button"
+              disabled={orderStatus === 'loading'}
+            >
+              {orderStatus === 'loading' ? 'Processing...' : 'Place Order'}
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 

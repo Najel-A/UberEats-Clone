@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Container, 
   Typography, 
@@ -19,7 +19,8 @@ import {
   AccountCircle, 
   Favorite, 
   History, 
-  ExitToApp 
+  ExitToApp,
+  LocalDining
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../../../redux/slices/authSlice';
@@ -27,6 +28,7 @@ import { fetchRestaurants } from '../../../../redux/slices/restaurantSlice';
 import { fetchCustomerProfile, fetchFavorites } from '../../../../redux/slices/customerSlice';
 import Cart from '../../components/Cart/Cart';
 import RestaurantCard from '../../components/Restaurant/RestaurantCard';
+import './CustomerHome.css';
 
 const CustomerHome = () => {
   const navigate = useNavigate();
@@ -65,33 +67,48 @@ const CustomerHome = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      {/* Header with Cart and Profile buttons */}
-      <Box sx={{ 
-        position: 'fixed', 
-        top: 16, 
-        right: 16, 
-        zIndex: 1200,
-        display: 'flex',
-        gap: 1
-      }}>
-        <IconButton
-          onClick={handleProfileMenuOpen}
-          color="primary"
-          aria-label="profile"
-          aria-controls="profile-menu"
-          aria-haspopup="true"
-          aria-expanded={profileMenuOpen ? 'true' : undefined}
-        >
-          <AccountCircle fontSize="large" />
-        </IconButton>
-        
-        <IconButton onClick={toggleCart} color="primary" aria-label="cart">
-          <Badge badgeContent={items.length} color="error">
-            <ShoppingCart fontSize="large" />
-          </Badge>
-        </IconButton>
-      </Box>
+    <div className="customer-home-container">
+      {/* Main Header */}
+      <header className="main-header">
+        <Link to="/customer/home" className="header-logo">
+          <LocalDining className="logo-icon" fontSize="large" />
+          <div style={{ display: 'flex' }}>
+            <Typography className="logo-text-uber">
+              Uber
+            </Typography>
+            <Typography className="logo-text-eats">
+              Eats
+            </Typography>
+          </div>
+        </Link>
+
+        <div className="header-actions">
+          <IconButton
+            className="header-icon-button"
+            onClick={handleProfileMenuOpen}
+            aria-label="profile"
+            aria-controls="profile-menu"
+            aria-haspopup="true"
+            aria-expanded={profileMenuOpen ? 'true' : undefined}
+          >
+            <AccountCircle fontSize="large" />
+          </IconButton>
+          
+          <IconButton 
+            className="header-icon-button"
+            onClick={toggleCart}
+            aria-label="cart"
+          >
+            <Badge 
+              badgeContent={items.length} 
+              classes={{ badge: 'cart-badge' }}
+              overlap="circular"
+            >
+              <ShoppingCart fontSize="large" />
+            </Badge>
+          </IconButton>
+        </div>
+      </header>
       
       {/* Profile Menu */}
       <Menu
@@ -103,82 +120,78 @@ const CustomerHome = () => {
           'aria-labelledby': 'profile-button',
         }}
         PaperProps={{
-          style: {
-            width: 200,
-          },
+          className: 'profile-menu',
         }}
       >
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Avatar sx={{ width: 56, height: 56, margin: 'auto' }}>
+        <div className="profile-menu-header">
+          <Avatar className="profile-avatar">
             {profile?.profilePicture ? (
               <img src={profile.profilePicture} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               profile?.name?.charAt(0)
             )}
           </Avatar>
-          <Typography variant="subtitle1" sx={{ mt: 1 }}>
+          <Typography className="profile-name">
             {profile?.name || user || 'User'}
           </Typography>
-        </Box>
-        <Divider />
+        </div>
+        <Divider className="menu-divider" />
         
-        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/profile'); }}>
-          <AccountCircle sx={{ mr: 1 }} /> Profile
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/profile'); }} className="menu-item">
+          <AccountCircle className="menu-item-icon" /> Profile
         </MenuItem>
         
-        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/favorites'); }}>
-          <Favorite sx={{ mr: 1 }} /> Favorites
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/favorites'); }} className="menu-item">
+          <Favorite className="menu-item-icon" /> Favorites
         </MenuItem>
         
-        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/orders'); }}>
-          <History sx={{ mr: 1 }} /> Orders
+        <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/customer/orders'); }} className="menu-item">
+          <History className="menu-item-icon" /> Orders
         </MenuItem>
         
-        <Divider />
+        <Divider className="menu-divider" />
         
-        <MenuItem onClick={() => { handleProfileMenuClose(); handleLogout(); }} sx={{ color: 'error.main' }}>
-          <ExitToApp sx={{ mr: 1 }} /> Logout
+        <MenuItem onClick={() => { handleProfileMenuClose(); handleLogout(); }} className="menu-item logout-button">
+          <ExitToApp className="menu-item-icon" /> Logout
         </MenuItem>
       </Menu>
       
       {/* Main Content */}
-      <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <Typography variant="h4" component="h1">
+      <div className="main-content">
+        <Typography className="welcome-title">
           Welcome, {profile?.name || user || 'Valued Customer'}!
         </Typography>
         
-        {(restaurantsLoading || profileLoading) && <CircularProgress />}
+        {(restaurantsLoading || profileLoading) && <CircularProgress className="loading-spinner" />}
         
         {error && (
-          <Typography color="error" variant="body1">
+          <Typography className="error-message">
             Error loading restaurants: {error}
           </Typography>
         )}
         
         {restaurants.length > 0 && (
-          <Paper elevation={3} sx={{ width: '100%', p: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+          <div className="restaurants-container">
+            <Typography className="restaurants-title">
               Available Restaurants
             </Typography>
-            <Grid container spacing={3}>
+            <div className="restaurants-grid">
               {restaurants.map((restaurant) => (
-                <Grid item key={restaurant._id} xs={12} sm={6} md={4}>
-                  <RestaurantCard restaurant={restaurant} />
-                </Grid>
+                <RestaurantCard key={restaurant._id} restaurant={restaurant} />
               ))}
-            </Grid>
-          </Paper>
+            </div>
+          </div>
         )}
         
         {!restaurantsLoading && restaurants.length === 0 && !error && (
-          <Typography variant="body1">
+          <Typography className="no-restaurants">
             No restaurants available at the moment.
           </Typography>
         )}
-      </Box>
+      </div>
       
       <Cart open={cartOpen} onClose={() => setCartOpen(false)} />
-    </Container>
+    </div>
   );
 };
 

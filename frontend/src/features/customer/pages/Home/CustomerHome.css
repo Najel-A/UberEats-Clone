@@ -1,0 +1,265 @@
+/* Customer Home Page Styles */
+.customer-home-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #d7ddda 100%);
+  padding: 20px;
+  padding-top: 80px;
+}
+
+/* Main Header Styles */
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 12px 24px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.header-logo:hover {
+  transform: translateY(-2px);
+}
+
+.logo-icon {
+  color: #000000;
+}
+
+.logo-text-uber {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: -0.5px;
+}
+
+.logo-text-eats {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #06C167;
+  letter-spacing: -0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon-button {
+  color: #06C167;
+  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(6, 193, 103, 0.1);
+}
+
+.header-icon-button:hover {
+  background: rgba(6, 193, 103, 0.2);
+  transform: scale(1.1);
+}
+
+.cart-badge {
+  background: #e53e3e !important;
+  color: white !important;
+}
+
+/* Profile Menu Styles */
+.profile-menu {
+  width: 250px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.profile-menu-header {
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #06C167 0%, #048848 100%);
+  color: white;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.menu-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: #f7fafc;
+}
+
+.menu-item-icon {
+  color: #4a5568;
+}
+
+.menu-divider {
+  margin: 8px 0;
+  border-color: #e2e8f0;
+}
+
+.logout-button {
+  color: #e53e3e;
+}
+
+.logout-button:hover {
+  background-color: #fff5f5;
+}
+
+/* Main Content Styles */
+.main-content {
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcome-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  text-align: center;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.loading-spinner {
+  color: #06C167;
+}
+
+.error-message {
+  color: #e53e3e;
+  background: #fff5f5;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* Restaurant Grid Styles */
+.restaurants-container {
+  width: 100%;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.restaurants-container:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.restaurants-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.restaurants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.no-restaurants {
+  text-align: center;
+  color: #4a5568;
+  font-style: italic;
+  padding: 24px;
+  background: #f7fafc;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .restaurants-container {
+    padding: 16px;
+  }
+  
+  .restaurants-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-header {
+    padding: 8px 16px;
+  }
+
+  .logo-text-uber {
+    font-size: 1.5rem;
+  }
+
+  .logo-text-eats {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-title {
+    font-size: 1.75rem;
+  }
+  
+  .main-content {
+    margin-top: 60px;
+    gap: 16px;
+  }
+  
+  .restaurants-container {
+    padding: 12px;
+  }
+
+  .logo-text-uber {
+    font-size: 1.25rem;
+  }
+
+  .logo-text-eats {
+    font-size: 1.25rem;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+} 

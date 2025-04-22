@@ -1,66 +1,164 @@
 // pages/OrderHistoryPage.jsx
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { getCustomerOrders } from '../../../../redux/slices/orderSlice';
-import OrderCard from '../../components/Order/OrderCard';
+import { Typography, CircularProgress } from '@mui/material';
+import { Receipt, ReceiptLong, ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import './OrderPage.css';
 
 const OrderHistoryPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { orderHistory, historyStatus, error } = useSelector((state) => state.order);
-  //console.log('Redux Order State:', { orderHistory, historyStatus, error });
+  const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(getCustomerOrders());
-  }, [dispatch]);
+    if (token) {
+      dispatch(getCustomerOrders());
+    }
+  }, [dispatch, token]);
+
+  const formatDate = (dateString) => {
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const getStatusClass = (status) => {
+    return `order-status status-${status.toLowerCase()}`;
+  };
+
+  const handleBack = () => {
+    navigate('/customer/home');
+  };
+
+  if (historyStatus === 'loading') {
+    return (
+      <div className="loading-container">
+        <CircularProgress className="loading-spinner" size={60} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-message">
+        Error loading orders: {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Your Orders</h1>
-        <button
-          onClick={() => navigate('/customer/home')}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors flex items-center"
-        >
-          <span>← Back</span>
+    <div className="order-history-container">
+      <div className="page-header">
+        <button className="back-button" onClick={handleBack}>
+          <ArrowBack />
+          Back to Home
         </button>
+        <Typography className="page-title">
+          Order History
+        </Typography>
       </div>
-      
-      {historyStatus === 'loading' && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-        </div>
-      )}
 
-      {historyStatus === 'failed' && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p>Error loading orders: {error}</p>
-          <button
-            onClick={() => dispatch(getCustomerOrders())}
-            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      <div className="orders-container">
+        {orderHistory.length === 0 ? (
+          <div className="empty-orders">
+            <ReceiptLong className="empty-orders-icon" />
+            <Typography className="empty-orders-text">
+              No orders found
+            </Typography>
+          </div>
+        ) : (
+          orderHistory.map((order) => (
+            <div key={order._id} className="order-card" onClick={() => navigate(`/customer/orders/${order._id}`)}>
+              <div className="order-header">
+                <Typography className="order-id">
+                  Order #{order._id.slice(-6)}
+                </Typography>
+                <Typography className="order-date">
+                  {formatDate(order.created_at)}
+                </Typography>
+              </div>
 
-      {historyStatus === 'succeeded' && (
-        <div>
-          {orderHistory.length === 0 ? (
-            <div className="text-center py-10">
-              <h2 className="text-xl font-semibold mb-2">No orders found</h2>
-              <p className="text-gray-600">You haven't placed any orders yet.</p>
+              <div className="order-content">
+                <div className="restaurant-info">
+                  {order.restaurant_id?.profilePicture && (
+                    <img
+                      src={`http://localhost:5000${order.restaurant_id.profilePicture}`}
+                      alt={order.restaurant_id?.name}
+                      className="restaurant-image"
+                      onError={(e) => {
+                        e.target.src = '/restaurant-placeholder.png';
+                      }}
+                    />
+                  )}
+                  <div>
+                    <Typography className="restaurant-name">
+                      {order.restaurant_id?.name || 'Restaurant'}
+                    </Typography>
+                    <Typography className={getStatusClass(order.status)}>
+                      {order.status}
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="order-items">
+                  {order.items.slice(0, 2).map((item, index) => (
+                    <div key={index} className="order-item">
+                      <div className="item-info">
+                        {item.dish?.image && (
+                          <img
+                            src={`http://localhost:5000${item.dish.image}`}
+                            alt={item.dish?.name}
+                            className="item-image"
+                          />
+                        )}
+                        <div className="item-details">
+                          <Typography className="item-name">
+                            {item.dish?.name || 'Item'}
+                          </Typography>
+                          <Typography className="item-quantity">
+                            Quantity: {item.quantity}
+                          </Typography>
+                        </div>
+                      </div>
+                      <Typography className="item-price">
+                        ${(item.priceAtTime * item.quantity).toFixed(2)}
+                      </Typography>
+                    </div>
+                  ))}
+                  {order.items.length > 2 && (
+                    <Typography className="item-quantity" style={{ textAlign: 'center', marginTop: '8px' }}>
+                      +{order.items.length - 2} more items
+                    </Typography>
+                  )}
+                </div>
+
+                <div className="order-summary">
+                  <div className="summary-row">
+                    <span>Subtotal</span>
+                    <span>${order.total_price.toFixed(2)}</span>
+                  </div>
+                  <div className="summary-row">
+                    <span>Delivery Fee</span>
+                    <span>$5.00</span>
+                  </div>
+                  <div className="summary-row total">
+                    <span>Total</span>
+                    <span>${(order.total_price + 5).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {orderHistory.map((order) => (
-                <OrderCard key={order._id} order={order} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };

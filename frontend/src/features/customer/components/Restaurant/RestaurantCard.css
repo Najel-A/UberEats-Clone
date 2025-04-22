@@ -22,13 +22,16 @@
     height: 100%;
   }
   
+  /* Home page restaurant image container */
   .restaurant-image-container {
     position: relative;
     padding-top: 56.25%; /* 16:9 aspect ratio */
+    width: 100%;
     overflow: hidden;
   }
   
-  .restaurant-image {
+  /* Home page restaurant image */
+  .restaurant-image-container .restaurant-image {
     position: absolute;
     top: 0;
     left: 0;
