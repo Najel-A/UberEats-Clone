@@ -4,6 +4,7 @@ import { FaStar, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { addFavorite, removeFavorite } from '../../../../redux/slices/customerSlice';
 import './RestaurantCard.css';
+import Restaurantplaceholder from '../../../../assets/placeholder-restaurant.png';
 
 const RestaurantCard = ({ restaurant }) => {
   const dispatch = useDispatch();
@@ -45,11 +46,13 @@ const RestaurantCard = ({ restaurant }) => {
       >
         <div className="restaurant-image-container">
           <img
-            src={`http://localhost:5000${restaurant.profilePicture}` || '/images/restaurant-placeholder.jpg'}
+            src={restaurant.profilePicture 
+              ? `http://localhost:5000${restaurant.profilePicture}` 
+              : Restaurantplaceholder}
             alt={restaurant.name}
             className="restaurant-image"
             onError={(e) => {
-              e.target.src = '/images/restaurant-placeholder.jpg';
+              e.target.src = '/images/restaurant-placeholder.png';
             }}
             loading="lazy"
           />

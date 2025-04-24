@@ -1,5 +1,5 @@
-// pages/OrderHistoryPage.jsx
-import React, { useEffect } from 'react';
+// pages/OrderHistoryPage.js
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getCustomerOrders } from '../../../../redux/slices/orderSlice';
 import { Typography, CircularProgress } from '@mui/material';
@@ -12,11 +12,25 @@ const OrderHistoryPage = () => {
   const navigate = useNavigate();
   const { orderHistory, historyStatus, error } = useSelector((state) => state.order);
   const { token } = useSelector((state) => state.auth);
+  const [localOrderHistory, setLocalOrderHistory] = useState([]);
+  
 
+  // Set up polling for order updates
   useEffect(() => {
-    if (token) {
+    if (!token) return;
+
+    // Initial fetch
+    dispatch(getCustomerOrders());
+    
+
+    // Set up polling interval (every 10 seconds)
+    const intervalId = setInterval(() => {
       dispatch(getCustomerOrders());
-    }
+      console.log('Polling for order updates...');
+    }, 5000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
   }, [dispatch, token]);
 
   const formatDate = (dateString) => {
