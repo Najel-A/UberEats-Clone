@@ -14,13 +14,21 @@ This is a distributed food delivery system built using microservices architectur
 
 ```
 .
+├── backend/
+├── frontend/
+|── docker-compose.yml               
 ├── k8s/                    # Kubernetes configuration files
-│   └── kafka.yaml         # Kafka and Zookeeper deployment
-├── services/
-│   ├── user-service/      # User management service
-│   ├── restaurant-service/ # Restaurant management service
-│   └── order-service/     # Order processing service
-└── frontend/              # Frontend application
+│   └── kafka
+|   |   |── deployment.yaml     
+|   |─── backend
+|   |   |── deployment.yaml
+|   |   |── service.yaml   
+|   |─── frontend
+|   |   |── deployment.yaml
+|   |   |── service.yaml
+|   |─── mongodb
+|   |   |── deployment.yaml
+|   |── ingress.yaml
 ```
 
 ## Setup Instructions
@@ -29,35 +37,22 @@ This is a distributed food delivery system built using microservices architectur
    - Ensure Docker Desktop is running
    - Enable Kubernetes in Docker Desktop settings
 
-2. **Build Service Images**
+2. **Build Dockerfile**
    ```powershell
-   # Build all service images
-   docker build -t user-service:latest services/user-service
-   docker build -t restaurant-service:latest services/restaurant-service
-   docker build -t order-service:latest services/order-service
+   # Build docker container
+   docker-compose build
+   ```
+3. **Deploy Services**
+   ```powershell
+   # Deploy Kafka, MongoDB, Frontend, and Backend
+   kubectl apply -f k8s/mongodb/
+   kubectl apply -f k8s/kafka/
+   kubectl apply -f k8s/backend/
+   kubectl apply -f k8s/frontend/
+   kubectl apply -f k8s/ingress.yaml
    ```
 
-3. **Create MongoDB Secret**
-   ```powershell
-   # Create the MongoDB secret
-   kubectl create secret generic mongodb-secret --from-literal=uri="mongodb://mongodb-service:27017/orders"
-   ```
-
-4. **Deploy Services**
-   ```powershell
-   # Deploy Kafka and Zookeeper
-   kubectl apply -f k8s/kafka.yaml
-
-   # Wait for Kafka to be ready (about 30 seconds)
-   Start-Sleep -Seconds 30
-
-   # Deploy the microservices
-   kubectl apply -f services/user-service/k8s-deployment.yaml
-   kubectl apply -f services/restaurant-service/k8s-deployment.yaml
-   kubectl apply -f services/order-service/k8s-deployment.yaml
-   ```
-
-5. **Verify Deployments**
+4. **Verify Deployments**
    ```powershell
    # Check if all pods are running
    kubectl get pods
@@ -69,33 +64,8 @@ This is a distributed food delivery system built using microservices architectur
 ## Running the Application
 
 1. **Set up Port Forwarding**
-   Since we're using PowerShell, we need to run each port-forward command in a separate window. Open four separate PowerShell windows and run these commands:
-
-   Window 1:
    ```powershell
-   kubectl port-forward service/frontend-service 3000:80
-   ```
-
-   Window 2:
-   ```powershell
-   kubectl port-forward service/order-service 5003:5003
-   ```
-
-   Window 3:
-   ```powershell
-   kubectl port-forward service/restaurant-service 5002:5002
-   ```
-
-   Window 4:
-   ```powershell
-   kubectl port-forward service/user-service 5001:5001
-   ```
-
-2. **Access the Services**
-   - Frontend: http://localhost:3000
-   - User Service: http://localhost:5001
-   - Restaurant Service: http://localhost:5002
-   - Order Service: http://localhost:5003
+   Access the frontend service at httpp://localhost:3000
 
 ## Viewing Logs
 
