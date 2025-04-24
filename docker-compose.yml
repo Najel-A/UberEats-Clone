@@ -1,53 +1,34 @@
 services:
-  mongodb-user:
-    image: mongo:4.4 # Need to specify version
-    container_name: data236-lab2-users
-    ports:
-      - "27018:27017" 
-    volumes:
-      - ./data/user-db:/data/db 
-    environment:
-      MONGO_INITDB_DATABASE: users 
-
-  mongodb-restaurant:
-    image: mongo:4.4 # Need to specify version
-    container_name: data236-lab2-restaurants
-    ports:
-      - "27019:27017"
-    volumes:
-      - ./data/restaurant-db:/data/db 
-    environment:
-      MONGO_INITDB_DATABASE: restaurants
-
-  kafka:
-    image: ubuntu/kafka:latest
-    container_name: data236-lab2-orders
-    environment:
-      KAFKA_ADVERTISED_LISTENER: INSIDE-KAFKA:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
-      KAFKA_LISTENER_NAMES: INSIDE-KAFKA
-      KAFKA_LISTENER_PORT: 9093
-      KAFKA_LISTENER_INTERFACE: 0.0.0.0
-      KAFKA_LISTENER_INTERNAL: INSIDE-KAFKA
-      KAFKA_LISTENER_INTERNAL_PORT: 9093
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_NAME_INTERNAL: INSIDE-KAFKA
-      KAFKA_LISTENER_NAME_EXTERNAL: OUTSIDE-KAFKA
-    ports:
-      - "9093:9093"   # External Kafka port
-      - "9094:9094"   # Internal Kafka port
-    depends_on:
-      - zookeeper
-
   zookeeper:
-    image: ubuntu/zookeeper:latest
-    container_name: data236-lab2-zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    platform: linux/amd64
+    container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
 
-volumes:
-  user-db:
-  restaurant-db:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    platform: linux/amd64
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"  # Added for external access
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
 
+volumes:
+  kafka-data:
+    driver: local
