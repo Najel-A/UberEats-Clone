@@ -14,22 +14,12 @@ This is a distributed food delivery system built using microservices architectur
 
 ```
 .
-├── backend/
-├── frontend/
-├── jmeter-tests/
-|── docker-compose.yml               
-├── k8s/                    # Kubernetes configuration files
-│   └── kafka
-|   |   |── deployment.yaml     
-|   |─── backend
-|   |   |── deployment.yaml
-|   |   |── service.yaml   
-|   |─── frontend
-|   |   |── deployment.yaml
-|   |   |── service.yaml
-|   |─── mongodb
-|   |   |── deployment.yaml
-|   |── ingress.yaml
+├── backend/                  # Node.js backend
+├── frontend/                 # React frontend
+├── jmeter-tests/             # JMeter test scripts  
+|── docker-compose.yml        # Docker compose file     
+├── k8s/                      # Kubernetes configuration files
+├── README.md                 # Project documentation
 ```
 
 ## Setup Instructions
@@ -43,10 +33,17 @@ This is a distributed food delivery system built using microservices architectur
    # Build docker container
    docker-compose build
    ```
+3. **Start up Minikube**
+    ```powershell
+   # Build minikube container
+   minikube start
+   ```
 3. **Deploy Services**
    ```powershell
-   # Deploy Kafka, MongoDB, Frontend, and Backend
+   # Deploy Zookeepr, Kafka, MongoDB, Frontend, and Backend (Zookeeper must be running before Kakfa)
    kubectl apply -f k8s/mongodb/
+   kubectl apply -f k8s/zookeeper/
+   kubectl wait --for=condition=Ready pod -l app=zookeeper --timeout=120s
    kubectl apply -f k8s/kafka/
    kubectl apply -f k8s/backend/
    kubectl apply -f k8s/frontend/
@@ -112,7 +109,7 @@ To view logs for any service, use the following commands:
    kubectl logs <pod-name>
 
    # Restart deployments if needed
-   kubectl rollout restart deployment order-service restaurant-service user-service
+   kubectl rollout restart deployment <deployment-name>
    ```
 
 2. **If port forwarding fails:**
@@ -137,11 +134,15 @@ The system uses:
 
 To clean up the deployment:
 ```powershell
-kubectl delete -f k8s/kafka.yaml
-kubectl delete -f services/user-service/k8s-deployment.yaml
-kubectl delete -f services/restaurant-service/k8s-deployment.yaml
-kubectl delete -f services/order-service/k8s-deployment.yaml
-kubectl delete secret mongodb-secret
+kubectl delete -f k8s/mongodb/
+kubectl delete -f k8s/kafka/
+kubectl delete -f k8s/zookeeper/
+kubectl delete -f k8s/backend/
+kubectl delete -f k8s/frontend/
+kubectl delete -f k8s/ingress.yaml
+
+minikube stop
+minikube delete
 ```
 
 ## Checking Kubernetes Deployments
