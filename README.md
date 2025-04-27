@@ -16,6 +16,7 @@ This is a distributed food delivery system built using microservices architectur
 .
 ├── backend/
 ├── frontend/
+├── jmeter-tests/
 |── docker-compose.yml               
 ├── k8s/                    # Kubernetes configuration files
 │   └── kafka
@@ -219,3 +220,38 @@ kubectl delete secret mongodb-secret
    # View pod configuration
    kubectl get pod <pod-name> -o yaml
    ```
+
+## Running JMeter Tests
+
+1. **Download Apache JMeter**
+   - Visit the [Apache JMeter download page](https://jmeter.apache.org/download_jmeter.cgi).
+   - Download the latest version of JMeter for your operating system.
+   - Extract the downloaded archive to a preferred location.
+
+2. **Open JMeter**
+   - Navigate to the extracted JMeter folder.
+   - Launch JMeter using the command:
+     ```bash
+     ./bin/jmeter
+     ```
+
+3. **Load the Test Plan**
+   - Open the file `jmeter-tests/testing.jmx` in JMeter.
+   - Note: You can also run the other `.jmx` files available in the `jmeter-tests` folder.
+
+4. **Warnings for Specific Test Files**
+   - **signup-test.jmx**: Running this test multiple times may result in a key error due to duplicate entries. Ensure the customers database is cleared before re-running.
+   - **login-test.jmx**: This test only works after users are created by running `signup-test.jmx`.
+   - **orders-test.jmx**: The Authorization token in the HTTP Header Manager must be updated with a valid and up-to-date token before running.
+
+5. **Configure Test Parameters**
+   - Update the server domain, port, or other parameters in the test plan if necessary.
+
+6. **Run the Tests**
+   - Click the green "Start" button in JMeter to execute the tests.
+
+7. **View Results**
+   - Check the "View Results Tree," "Summary Report," or "Aggregate Report" listeners for test results.
+
+8. **Export Results**
+   - To save the results, configure the output file in the listener settings or export manually after the test run.
