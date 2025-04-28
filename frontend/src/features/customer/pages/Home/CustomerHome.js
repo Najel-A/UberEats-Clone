@@ -11,7 +11,6 @@ import {
   Badge,
   Menu,
   MenuItem,
-  Avatar,
   Divider
 } from '@mui/material';
 import { 
@@ -123,14 +122,14 @@ const CustomerHome = () => {
           className: 'profile-menu',
         }}
       >
-        <div className="profile-menu-header">
-          <Avatar className="profile-avatar">
-            {profile?.profilePicture ? (
-              <img src={profile.profilePicture} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              profile?.name?.charAt(0)
-            )}
-          </Avatar>
+        <div 
+          className="profile-menu-header"
+          style={{
+            backgroundImage: profile?.profilePicture ? `url(${profile.profilePicture})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
           <Typography className="profile-name">
             {profile?.name || user || 'User'}
           </Typography>

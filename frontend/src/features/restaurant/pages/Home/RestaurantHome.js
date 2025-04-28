@@ -11,7 +11,8 @@ import {
   Avatar,
   Space,
   Typography,
-  Spin
+  Spin,
+  Progress
 } from 'antd';
 import {
   UserOutlined,
@@ -26,6 +27,7 @@ import { fetchRestaurantOrders } from '../../../../redux/slices/orderSlice';
 import { logout } from '../../../../redux/slices/authSlice';
 import { fetchRestaurantProfile } from '../../../../redux/slices/restaurantSlice';
 import OrderCard from '../../components/Order/OrderCard';
+import './RestaurantHome.css';
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -75,20 +77,6 @@ const RestaurantHome = () => {
       key: 'dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
-    },
-    {
-      key: 'orders',
-      icon: <ShoppingCartOutlined />,
-      label: (
-        <Badge count={stats.pendingOrders} offset={[10, 0]}>
-          Orders
-        </Badge>
-      ),
-    },
-    {
-      key: 'menu',
-      icon: <MenuOutlined />,
-      label: 'Menu Management',
     },
     {
       key: 'profile',
@@ -152,7 +140,7 @@ const RestaurantHome = () => {
         <Content style={{ margin: '24px 16px 0' }}>
           <Row gutter={16} style={{ marginBottom: 24 }}>
             <Col span={8}>
-              <Card>
+              <Card style={{ borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
                 <Statistic
                   title="Pending Orders"
                   value={stats.pendingOrders}
@@ -161,7 +149,7 @@ const RestaurantHome = () => {
               </Card>
             </Col>
             <Col span={8}>
-              <Card>
+              <Card style={{ borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
                 <Statistic
                   title="Completed Today"
                   value={stats.completedToday}
@@ -169,7 +157,7 @@ const RestaurantHome = () => {
               </Card>
             </Col>
             <Col span={8}>
-              <Card>
+              <Card style={{ borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
                 <Statistic
                   title="Today's Revenue"
                   value={stats.totalRevenue}
@@ -179,27 +167,69 @@ const RestaurantHome = () => {
               </Card>
             </Col>
           </Row>
-
-          <Card 
-            title="Recent Orders" 
-            extra={<Button type="link" onClick={() => navigate('/restaurant/orders')}>
-              View All Orders
-            </Button>}
-          >
-            {recentOrders.length > 0 ? (
-              recentOrders.map(order => (
-                <OrderCard 
-                  key={order._id} 
-                  order={order} 
-                  isRestaurant={true}
-                />
-              ))
-            ) : (
-              <div style={{ textAlign: 'center', padding: 24 }}>
-                <Text type="secondary">No recent orders</Text>
-              </div>
-            )}
+          {/* Pending Order Status Bar */}
+          <Card style={{ borderRadius: 16, marginBottom: 32, boxShadow: '0 2px 12px rgba(24,144,255,0.08)' }}>
+            <Title level={5} style={{ marginBottom: 16 }}>Pending Order Status</Title>
+            <Progress 
+              percent={restaurantOrders && restaurantOrders.length > 0 ? Math.round((stats.pendingOrders / restaurantOrders.length) * 100) : 0}
+              status={stats.pendingOrders > 0 ? 'active' : 'normal'}
+              strokeColor={{ from: '#06C167', to: '#1890ff' }}
+              showInfo
+              format={percent => `${stats.pendingOrders} pending / ${restaurantOrders?.length || 0} total`}
+            />
           </Card>
+
+          {/* Order and Menu Management Cards */}
+          <Row gutter={24} style={{ marginBottom: 32 }}>
+            <Col xs={24} md={12}>
+              <Card
+                className="dashboard-action-card order-management-card"
+                style={{ borderRadius: 18, minHeight: 200, border: 'none', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)' }}
+                hoverable
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 18 }}>
+                  <div className="dashboard-action-icon order-icon">
+                    <ShoppingCartOutlined style={{ fontSize: 36, color: '#1890ff' }} />
+                  </div>
+                  <Title level={5} style={{ margin: 0 }}>Order Management</Title>
+                </div>
+                <Text type="secondary" style={{ fontSize: 16 }}>View and manage all your restaurant orders, update statuses, and track order history.</Text>
+                <Button 
+                  type="primary" 
+                  className="dashboard-action-btn order-btn"
+                  style={{ marginTop: 28, borderRadius: 8, background: '#1890ff', border: 'none', fontWeight: 600, fontSize: 16, padding: '12px 32px' }}
+                  size="large"
+                  onClick={() => navigate('/restaurant/orders')}
+                >
+                  Go to Orders
+                </Button>
+              </Card>
+            </Col>
+            <Col xs={24} md={12}>
+              <Card
+                className="dashboard-action-card menu-management-card"
+                style={{ borderRadius: 18, minHeight: 200, border: 'none', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)' }}
+                hoverable
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 18 }}>
+                  <div className="dashboard-action-icon menu-icon">
+                    <MenuOutlined style={{ fontSize: 36, color: '#06C167' }} />
+                  </div>
+                  <Title level={5} style={{ margin: 0 }}>Menu Management</Title>
+                </div>
+                <Text type="secondary" style={{ fontSize: 16 }}>Add, edit, or remove dishes from your restaurant menu. Keep your offerings up to date.</Text>
+                <Button 
+                  type="primary" 
+                  className="dashboard-action-btn menu-btn"
+                  style={{ marginTop: 28, borderRadius: 8, background: '#06C167', border: 'none', fontWeight: 600, fontSize: 16, padding: '12px 32px' }}
+                  size="large"
+                  onClick={() => navigate('/restaurant/menu')}
+                >
+                  Manage Menu
+                </Button>
+              </Card>
+            </Col>
+          </Row>
         </Content>
       </Layout>
     </Layout>

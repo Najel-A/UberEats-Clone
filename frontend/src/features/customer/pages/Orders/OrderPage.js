@@ -20,17 +20,27 @@ const OrderHistoryPage = () => {
   }, [dispatch, token]);
 
   const formatDate = (dateString) => {
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    try {
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    } catch (error) {
+      return 'Date not available';
+    }
+  };
+
+  const getOrderNumber = (order) => {
+    if (!order || !order._id) return 'N/A';
+    return order._id.slice(-6).toUpperCase();
   };
 
   const getStatusClass = (status) => {
+    if (!status) return 'status-idle';
     return `order-status status-${status.toLowerCase()}`;
   };
 
@@ -50,6 +60,14 @@ const OrderHistoryPage = () => {
     return (
       <div className="error-message">
         Error loading orders: {error}
+      </div>
+    );
+  }
+
+  if (!orderHistory || !Array.isArray(orderHistory)) {
+    return (
+      <div className="error-message">
+        No orders available. Please try again later.
       </div>
     );
   }
@@ -76,17 +94,17 @@ const OrderHistoryPage = () => {
           </div>
         ) : (
           orderHistory.map((order) => (
-            <div key={order._id} className="order-card" onClick={() => navigate(`/customer/orders/${order._id}`)}>
-              <div className="order-header">
-                <Typography className="order-id">
-                  Order #{order._id.slice(-6)}
-                </Typography>
-                <Typography className="order-date">
-                  {formatDate(order.created_at)}
-                </Typography>
-              </div>
+            order && (
+              <div key={order._id} className="order-card" onClick={() => navigate(`/customer/orders/${order._id}`)}>
+                <div className="order-header">
+                  <Typography className="order-id">
+                    Order #{getOrderNumber(order)}
+                  </Typography>
+                  <Typography className="order-date">
+                    {formatDate(order.created_at)}
+                  </Typography>
+                </div>
 
-              <div className="order-content">
                 <div className="restaurant-info">
                   {order.restaurant_id?.profilePicture && (
                     <img
@@ -103,13 +121,13 @@ const OrderHistoryPage = () => {
                       {order.restaurant_id?.name || 'Restaurant'}
                     </Typography>
                     <Typography className={getStatusClass(order.status)}>
-                      {order.status}
+                      {order.status || 'Status not available'}
                     </Typography>
                   </div>
                 </div>
 
                 <div className="order-items">
-                  {order.items.slice(0, 2).map((item, index) => (
+                  {(order.items || []).slice(0, 2).map((item, index) => (
                     <div key={index} className="order-item">
                       <div className="item-info">
                         {item.dish?.image && (
@@ -117,6 +135,9 @@ const OrderHistoryPage = () => {
                             src={`http://localhost:5000${item.dish.image}`}
                             alt={item.dish?.name}
                             className="item-image"
+                            onError={(e) => {
+                              e.target.src = '/dish-placeholder.png';
+                            }}
                           />
                         )}
                         <div className="item-details">
@@ -124,16 +145,16 @@ const OrderHistoryPage = () => {
                             {item.dish?.name || 'Item'}
                           </Typography>
                           <Typography className="item-quantity">
-                            Quantity: {item.quantity}
+                            Quantity: {item.quantity || 0}
                           </Typography>
                         </div>
                       </div>
                       <Typography className="item-price">
-                        ${(item.priceAtTime * item.quantity).toFixed(2)}
+                        ${((item.priceAtTime || 0) * (item.quantity || 0)).toFixed(2)}
                       </Typography>
                     </div>
                   ))}
-                  {order.items.length > 2 && (
+                  {(order.items || []).length > 2 && (
                     <Typography className="item-quantity" style={{ textAlign: 'center', marginTop: '8px' }}>
                       +{order.items.length - 2} more items
                     </Typography>
@@ -143,7 +164,7 @@ const OrderHistoryPage = () => {
                 <div className="order-summary">
                   <div className="summary-row">
                     <span>Subtotal</span>
-                    <span>${order.total_price.toFixed(2)}</span>
+                    <span>${(order.total_price || 0).toFixed(2)}</span>
                   </div>
                   <div className="summary-row">
                     <span>Delivery Fee</span>
@@ -151,11 +172,11 @@ const OrderHistoryPage = () => {
                   </div>
                   <div className="summary-row total">
                     <span>Total</span>
-                    <span>${(order.total_price + 5).toFixed(2)}</span>
+                    <span>${((order.total_price || 0) + 5).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
-            </div>
+            )
           ))
         )}
       </div>
