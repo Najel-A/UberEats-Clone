@@ -1,9 +1,10 @@
 /* Customer Home Page Styles */
 .customer-home-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #d7ddda 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
   padding: 20px;
   padding-top: 80px;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
 }
 
 /* Main Header Styles */
@@ -14,24 +15,25 @@
   right: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
-  padding: 12px 24px;
+  padding: 16px 32px;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   z-index: 1000;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: none;
 }
 
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
   transition: transform 0.3s ease;
 }
 
 .header-logo:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.04);
 }
 
 .logo-icon {
@@ -39,15 +41,15 @@
 }
 
 .logo-text-uber {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #000000;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #23272f;
   letter-spacing: -0.5px;
 }
 
 .logo-text-eats {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 2.2rem;
+  font-weight: 800;
   color: #06C167;
   letter-spacing: -0.5px;
 }
@@ -55,20 +57,21 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .header-icon-button {
   color: #06C167;
   transition: all 0.2s ease;
-  padding: 8px;
+  padding: 10px;
   border-radius: 50%;
   background: rgba(6, 193, 103, 0.1);
+  border: none;
 }
 
 .header-icon-button:hover {
   background: rgba(6, 193, 103, 0.2);
-  transform: scale(1.1);
+  transform: scale(1.14);
 }
 
 .cart-badge {
@@ -79,50 +82,80 @@
 /* Profile Menu Styles */
 .profile-menu {
   width: 250px;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: none;
 }
 
 .profile-menu-header {
-  padding: 20px;
+  padding: 24px;
   text-align: center;
-  background: linear-gradient(135deg, #06C167 0%, #048848 100%);
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   color: white;
 }
 
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 12px;
-  border: 3px solid white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.profile-menu-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 1;
+}
+
+.profile-menu-header > * {
+  position: relative;
+  z-index: 2;
 }
 
 .profile-name {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-top: 8px;
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 2;
+  color: #fff;
 }
 
 .menu-item {
-  padding: 12px 16px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  transition: all 0.2s ease;
+  gap: 14px;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  border-bottom: none;
+  color: #23272f;
+  font-weight: 600;
+  background: white;
+  font-size: 1.15rem;
 }
 
 .menu-item:hover {
   background-color: #f7fafc;
+  color: #06C167;
+  transform: translateX(8px) scale(1.04);
 }
 
 .menu-item-icon {
   color: #4a5568;
+  transition: color 0.2s;
+  font-size: 1.3rem;
+}
+
+.menu-item:hover .menu-item-icon {
+  color: #06C167;
 }
 
 .menu-divider {
-  margin: 8px 0;
+  margin: 10px 0;
   border-color: #e2e8f0;
 }
 
@@ -132,29 +165,31 @@
 
 .logout-button:hover {
   background-color: #fff5f5;
+  color: #c53030;
 }
 
 /* Main Content Styles */
 .main-content {
-  margin-top: 80px;
+  margin-top: 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 32px;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .welcome-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: 30px !important;
+  font-weight: 900;
+  color: #23272f;
   text-align: center;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  margin-bottom: 18px;
+  background: linear-gradient(135deg, #23272f 0%, #06C167 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: -1.5px;
 }
 
 .loading-spinner {
@@ -164,60 +199,109 @@
 .error-message {
   color: #e53e3e;
   background: #fff5f5;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 16px 28px;
+  border-radius: 10px;
   text-align: center;
   max-width: 600px;
+  border: none;
+  font-size: 1.15rem;
 }
 
 /* Restaurant Grid Styles */
 .restaurants-container {
   width: 100%;
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  transition: all 0.3s ease;
+  padding: 32px;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  border: none;
+  margin-bottom: 32px;
 }
 
 .restaurants-container:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: #06C167;
+  transform: translateY(-2px) scale(1.01);
 }
 
 .restaurants-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 24px;
-  padding-bottom: 12px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #23272f;
+  margin-bottom: 28px;
+  padding-bottom: 14px;
   border-bottom: 2px solid #e2e8f0;
+  letter-spacing: -0.5px;
 }
 
 .restaurants-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 32px;
 }
 
 .no-restaurants {
   text-align: center;
   color: #4a5568;
   font-style: italic;
-  padding: 24px;
+  padding: 28px;
   background: #f7fafc;
-  border-radius: 8px;
+  border-radius: 10px;
   width: 100%;
   max-width: 600px;
+  border: none;
+  font-size: 1.15rem;
+}
+
+/* Restaurant Card Styles */
+.restaurant-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(24,144,255,0.08);
+  border: none;
+  padding: 28px;
+  transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.restaurant-card:hover {
+  box-shadow: 0 8px 32px rgba(24,144,255,0.18);
+  border-color: #06C167;
+  transform: translateY(-4px) scale(1.03);
+}
+
+.restaurant-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #23272f;
+  margin-bottom: 6px;
+}
+
+.restaurant-desc {
+  color: #4a5568;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.restaurant-meta {
+  color: #06C167;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
   .welcome-title {
-    font-size: 2rem;
+    font-size: 2.1rem;
   }
   
   .restaurants-container {
-    padding: 16px;
+    padding: 18px;
   }
   
   .restaurants-grid {
@@ -225,7 +309,7 @@
   }
   
   .main-header {
-    padding: 8px 16px;
+    padding: 10px 12px;
   }
 
   .logo-text-uber {
@@ -239,7 +323,7 @@
 
 @media (max-width: 480px) {
   .welcome-title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
   
   .main-content {
@@ -248,7 +332,7 @@
   }
   
   .restaurants-container {
-    padding: 12px;
+    padding: 10px;
   }
 
   .logo-text-uber {
@@ -261,5 +345,8 @@
 
   .header-actions {
     gap: 8px;
+  }
+  .restaurant-card {
+    padding: 14px;
   }
 } 
